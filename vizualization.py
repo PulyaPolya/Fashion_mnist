@@ -5,9 +5,9 @@ from keras.datasets import fashion_mnist
 import numpy as np
 import json
 import functions as f
-
-history_dict = json.load(open('history', 'r'))
-filepath = 'cnn_saved_model/ weights-improvement--85-0.19.hdf5'
+history_dict = json.load(open('saved_history_rnn', 'r'))
+#history_dict = f.pandas_heplp()
+filepath = 'rnn_saved_model/ weights-improvement--98-0.27.hdf5'
 model = tf.keras.models.load_model(filepath)
 
 (x_train, y_train), (x_test, y_test) = fashion_mnist.load_data()
