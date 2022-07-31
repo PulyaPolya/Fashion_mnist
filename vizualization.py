@@ -5,13 +5,15 @@ from keras.datasets import fashion_mnist
 import numpy as np
 import json
 import functions as f
-history_dict = json.load(open('saved_history_rnn', 'r'))
+history_dict = json.load(open('saved_history_cnn', 'r'))
 #history_dict = f.pandas_heplp()
-filepath = 'rnn_saved_model/ weights-improvement--98-0.27.hdf5'
+#filepath = 'cnn_saved_model/ weights-improvement--74-0.18.hdf5'
+filepath = 'fashion_model_cnn.h5'
 model = tf.keras.models.load_model(filepath)
 
 (x_train, y_train), (x_test, y_test) = fashion_mnist.load_data()
 x_train, y_train, x_test, y_test = f.edit_data(x_train, y_train, x_test, y_test)
+#x_train, x_test =   x_train/ 255.0, x_test/ 255.0
 test_loss, test_acc = model.evaluate(x_test, y_test)
 
 fig, ax = plt.subplots(2,1)

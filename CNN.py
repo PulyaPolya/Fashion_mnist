@@ -24,7 +24,7 @@ x_train, y_train, x_test, y_test = f.edit_data(x_train, y_train, x_test, y_test)
 
 batch_size = 64
 num_classes = 10
-epochs =5
+epochs =300
 early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_acc', patience=20)
 log_csv = keras.callbacks.CSVLogger('history_cnn_new.csv')
 filepath = 'cnn_saved_model/ weights-improvement--{epoch:02d}-{val_loss:.2f}.hdf5'
@@ -54,7 +54,7 @@ model.compile(optimizer=tf.keras.optimizers.Adam(
 history = model.fit(x_train, y_train,
                     batch_size=batch_size,
                     epochs=epochs,
-                    validation_split=0.2,
+                    validation_split=0.1,
                     callbacks=callbacks_list,
                     verbose=1
                     )
