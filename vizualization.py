@@ -6,8 +6,9 @@ import numpy as np
 import json
 import functions as f
 history_dict = json.load(open('saved_history_fnn', 'r'))
+print(history_dict['acc'])
 #history_dict = f.pandas_heplp()
-filepath = 'cnn_saved_model/ weights-improvement--13-0.20.hdf5'
+filepath = 'cnn_saved_model/ hyper_weights-improvement--12-0.21.hdf5'
 #filepath = 'cnn_saved_model/transfer/trans_weights-improvement--23-0.21.hdf5'
 #filepath = 'fashion_model_cnn.h5'
 model = tf.keras.models.load_model(filepath)

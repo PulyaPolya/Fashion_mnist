@@ -7,6 +7,7 @@ from sklearn.utils import shuffle
 from keras.datasets import mnist
 from keras.datasets import fashion_mnist
 
+
 def edit_data(x_train, y_train, x_test, y_test):
     x_train = x_train.reshape(x_train.shape[0], x_train.shape[1], x_train.shape[2], 1)
     x_train = x_train / 255.0
@@ -109,3 +110,38 @@ def get_data_for_d_f(ret = 'all'):
 
     x_test, y_test = shuffle(x_test, y_test)
     return x_train, y_train, x_test, y_test
+
+def transpose(x_train, y_train):
+    rotated_images = []
+    for image in x_train:
+        rotated_image = image.transpose()
+        rotated_images.append(rotated_image)
+    rotated_images = np.array(rotated_images)
+    x_train = np.concatenate((x_train, rotated_images))
+    y_train = np.concatenate((y_train, y_train))
+    x_train, y_train = shuffle(x_train, y_train)
+    return x_train, y_train
+
+def grayscale_to_rgb(image):
+    image = image.reshape((28, 28, 1))
+    rgb = tf.image.grayscale_to_rgb(tf.convert_to_tensor(image))
+    return rgb
+
+def cnn_best_model(num_classes=10):
+    input_shape = (28, 28, 1)
+    model = tf.keras.models.Sequential([
+        tf.keras.layers.Conv2D(32, (5, 5), padding='same', activation='relu', input_shape=input_shape),
+        tf.keras.layers.Conv2D(32, (5, 5), padding='same', activation='relu'),
+        tf.keras.layers.MaxPool2D(),
+        tf.keras.layers.Dropout(0.4),
+        tf.keras.layers.Conv2D(64, (3, 3), padding='same', activation='relu'),
+        tf.keras.layers.Conv2D(64, (3, 3), padding='same', activation='relu'),
+        tf.keras.layers.MaxPool2D(strides=(2, 2)),
+        tf.keras.layers.Dropout(0.4),
+        tf.keras.layers.Flatten(),
+        tf.keras.layers.Dense(128, activation='relu'),
+        tf.keras.layers.Dropout(0.5),
+        tf.keras.layers.Dense(num_classes, activation='softmax')
+    ])
+    return model
+
