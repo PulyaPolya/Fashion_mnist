@@ -145,3 +145,15 @@ def cnn_best_model(num_classes=10):
     ])
     return model
 
+def define_cnn_simplified(conv1, conv2,conv3, dropout1, dropout2):
+    input_shape = (28, 28, 1)
+    model = tf.keras.models.Sequential([
+        tf.keras.layers.Conv2D(conv1, (5, 5), padding='same', activation='relu', input_shape=input_shape),
+        tf.keras.layers.Conv2D(conv2, (5, 5), padding='same', activation='relu'),
+        tf.keras.layers.MaxPool2D(),
+        tf.keras.layers.Dropout(dropout1 / 10),
+        tf.keras.layers.Conv2D(conv3, (3, 3), padding='same', activation='relu'),
+        tf.keras.layers.Dropout(dropout2 / 10),
+        tf.keras.layers.Flatten(),
+        tf.keras.layers.Dense(10, activation='softmax')])
+    return model

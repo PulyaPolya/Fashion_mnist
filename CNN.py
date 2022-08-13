@@ -5,7 +5,15 @@ import functions as f
 import json
 from timeit import default_timer as timer
 from keras.callbacks import ModelCheckpoint
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
+import neptune.new as neptune
+from neptune.new.integrations.tensorflow_keras import NeptuneCallback
+run = neptune.init(
+    project="linkapo/Fashion-mnist",
+    api_token="eyJhcGlfYWRkcmVzcyI6Imh0dHBzOi8vYXBwLm5lcHR1bmUuYWkiLCJhcGlfdXJsIjoiaHR0cHM6Ly9hcHAubmVwdHVuZS5haSIsImFwaV9rZXkiOiJmZDhlMTM5OC1jMzRlLTQ1YzktOWRlOS02MWE3ODg0ZWVkZTYifQ==",
+)  # your credentials
+params = {"lr": 3e-4,  "epochs": 300, "batch_size": 64, 'optimizer' : 'Adam'}
+run["parameters"] = params
+
 (x_train, y_train), (x_test, y_test) = fashion_mnist.load_data()
 
 #plt.figure(figsize=(10,10))
@@ -24,15 +32,13 @@ x_train, y_train, x_test, y_test = f.edit_data(x_train, y_train, x_test, y_test)
 
 batch_size = 64
 num_classes = 10
-epochs =300
+epochs =3
 early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_acc', patience=20)
 log_csv = keras.callbacks.CSVLogger('history_cnn_new.csv')
 filepath = 'cnn_saved_model/ weights-improvement--{epoch:02d}-{val_loss:.2f}.hdf5'
 checkpoint = ModelCheckpoint(filepath, monitor = 'val_acc',verbose=1,  save_best_only=True, mode='max')
-aug = ImageDataGenerator(width_shift_range=0.1,
-	height_shift_range=0.1, horizontal_flip=True,
-	fill_mode="nearest")
-callbacks_list = [early_stop, checkpoint,log_csv ]
+neptune_cbk = NeptuneCallback(run=run, base_namespace="training")
+callbacks_list = [early_stop, checkpoint,log_csv, neptune_cbk ]
 
 model = tf.keras.models.Sequential([
     tf.keras.layers.Conv2D(32, (5, 5), padding='same', activation='relu', input_shape=input_shape),
@@ -48,7 +54,6 @@ model = tf.keras.models.Sequential([
     tf.keras.layers.Dropout(0.5),
     tf.keras.layers.Dense(num_classes, activation='softmax')
 ])
-start = timer()
 model.compile(optimizer=tf.keras.optimizers.Adam(
     learning_rate=3e-4), loss='categorical_crossentropy', metrics=['acc'])
 history = model.fit(x_train, y_train,
@@ -58,10 +63,8 @@ history = model.fit(x_train, y_train,
                     callbacks=callbacks_list,
                     verbose=1
                     )
-end = timer()
-print(end - start)
 model.save("fashion_model_cnn.h5")
-test_loss, test_acc = model.evaluate(x_test, y_test)
+eval_metrics = model.evaluate(x_test, y_test)
 # Y_pred = model.predict(x_test)
 # # Convert predictions classes to one hot vectors
 # Y_pred_classes = np.argmax(Y_pred,axis = 1)
@@ -75,3 +78,7 @@ test_loss, test_acc = model.evaluate(x_test, y_test)
 history_dict = history.history
 # Save it under the form of a json file
 json.dump(history_dict, open('saved_history_cnn', 'w'))
+for j, metric in enumerate(eval_metrics):
+    run["eval/{}".format(model.metrics_names[j])] = metric
+
+run.stop()

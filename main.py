@@ -25,23 +25,18 @@ def print_model(conv1, conv2,conv3, dropout1, dropout2):
           f'\n conv2 =  { conv2}'
           f'\n conv3 =  {conv3}'
           f'\n dropout1 =  {dropout1 / 10}'
-          f'\n dropout2 =  {dropout2 / 10} ')
+          f'\n dropout2 =  {dropout2 / 10} '
+    )
 
 def train_models(models, numb_iteration, first_run= False, prev_two_val_acc = None):
     val_acc_arr = []
-    # if not first_run:
-    #     models = models_old[2:]
-    #     val_acc_arr += prev_two_val_acc
-    # else:
-    #     models = models_old[:]
-
     for hyper_params in models:
         print('-----------------------------------------------')
         print(f'Training for a model number {models.index(hyper_params)+1}, {numb_iteration}th iteration')
         print(f'The parameters are: ')
         print_model(conv1=hyper_params[0], conv2=hyper_params[1], conv3=hyper_params[2],
                              dropout1=hyper_params[3], dropout2=hyper_params[4])
-        early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_acc', patience=3, baseline=0.5)
+        early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_acc', patience=2, baseline=0.5)
         model = define_model(conv1=hyper_params[0], conv2=hyper_params[1], conv3=hyper_params[2],
                              dropout1=hyper_params[3], dropout2=hyper_params[4])
         model.compile(optimizer=tf.keras.optimizers.Adam(
@@ -71,22 +66,25 @@ x_train, y_train, x_test, y_test = f.edit_data(x_train[:number_of_tr_ex], y_trai
 batch_size = 64
 num_classes = 10
 epochs = 5
-numb_of_runs = 10
-range_dict = {'conv1' : [16, 64], 'conv2' :[16, 64] ,'conv3' : [32, 128], 'dropout1' : [3, 5], 'dropout2' : [3,5]}
+numb_of_runs = 20
+range_dict = {'conv1' : [32, 64], 'conv2' :[32, 64] ,'conv3' : [32, 128],
+              'dropout1' : [3, 5], 'dropout2' : [3,5]}
 best_acc = -1
 evolution = Evolution(range_dict, numb_of_indiv=6)
 models = evolution.initialize()
 val_acc_arr = train_models(evolution.individuals, 1, first_run= True)
+
 print(val_acc_arr)
 for i in range(numb_of_runs):
     if max(val_acc_arr) > best_acc:
         best_acc = max(val_acc_arr)
         best_model = get_best_model(val_acc_arr, models)
+        best_iteration = i
     print('---------------------------------------------------')
     print(f'Best model so far: \n')
     print_model(best_model[0], best_model[1], best_model[2], best_model[3], best_model[4])
     print(f'best_val_acc = {round(best_acc, 4)}')
-
+    print(f'best model accomplished on iteration number {best_iteration}')
     print('---------------------------------------------------')
     print(f'training for {i+2}th time')
     models= evolution.run_evolution(val_acc_arr)
