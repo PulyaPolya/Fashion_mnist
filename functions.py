@@ -6,6 +6,8 @@ import json
 from sklearn.utils import shuffle
 from keras.datasets import mnist
 from keras.datasets import fashion_mnist
+from scipy.ndimage.interpolation import shift
+import random
 
 
 def edit_data(x_train, y_train, x_test, y_test):
@@ -157,3 +159,17 @@ def define_cnn_simplified(conv1, conv2,conv3, dropout1, dropout2):
         tf.keras.layers.Flatten(),
         tf.keras.layers.Dense(10, activation='softmax')])
     return model
+
+
+def shift_image(image):
+    dx = random.randint(0, 2)
+    dy = random.randint(0, 2)
+    #image = image.reshape((28, 28))
+    shifted_image = shift(image, [dy, dx], cval=0, mode="constant")
+    return shifted_image
+def shift_image_np(x_batch):
+    dx = random.randint(0, 1)
+    dy = random.randint(0, 1)
+    x_shifted = np.pad(x_batch, ((0, 0), (dx, 0), (dy, 0)), mode='constant')
+    x_shifted = np.roll(x_shifted, (dx, dy), axis=(1, 2))[:, dx:, dy:]
+    return x_shifted

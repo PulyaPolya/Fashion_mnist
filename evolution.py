@@ -21,10 +21,11 @@ class Evolution:
         return parents
 
 
-    def mutation(self, individual):
-        param_name = random.choices(list(self.ranges_dict.keys()))[0]  # choosing key (parameter name) from dictionary
-        index =list(self.ranges_dict.keys()).index(param_name)        # randomly changing one value
-        individual[index] =  random.randint(self.ranges_dict[param_name][0], self.ranges_dict[param_name][1])
+    def mutation(self, individual, numb_of_mut=2):
+        for i in range(numb_of_mut):
+            param_name = random.choices(list(self.ranges_dict.keys()))[0]  # choosing key (parameter name) from dictionary
+            index =list(self.ranges_dict.keys()).index(param_name)        # randomly changing one value
+            individual[index] = random.randint(self.ranges_dict[param_name][0], self.ranges_dict[param_name][1])
         return individual
 
 
@@ -51,7 +52,7 @@ class Evolution:
             offspring2 = self.mutation(offspring2)
             next_generation += [offspring1, offspring2]
         self.individuals = next_generation.copy()
-        return next_generation[2:]
+        return (next_generation[2:], next_generation)
 
 
 
