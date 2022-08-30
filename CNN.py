@@ -11,7 +11,7 @@ import time
 
 
 (x_train, y_train), (x_test, y_test) = fashion_mnist.load_data()
-
+#x_train, y_train = f.shift_x_train(x_train, y_train)
 #plt.figure(figsize=(10,10))
 # for i in range(25):
 #     plt.subplot(5,5,i+1)
@@ -26,7 +26,7 @@ import time
 input_shape = (28, 28, 1)
 x_train, y_train, x_test, y_test = f.edit_data(x_train, y_train, x_test, y_test)
 
-size_data = 60000
+size_data = x_train.shape[0]
 batch_size = 64
 num_classes = 10
 num_iter =20000
@@ -92,7 +92,7 @@ class RandomInvert(layers.Layer):
 
 input_shape = (28, 28, 1)
 model = tf.keras.models.Sequential([
-    RandomInvert(),
+    #RandomInvert(),
     tf.keras.layers.Conv2D(59, (5, 5), padding='same', activation='relu', input_shape=input_shape),
     tf.keras.layers.Conv2D(33, (5, 5), padding='same', activation='relu'),
     tf.keras.layers.MaxPool2D(),
@@ -113,7 +113,6 @@ history = model.fit(x_train, y_train,
                     verbose=1
                     )
 end = time.time()
-print(f'Total elapsed time {end-start}\n')
 print('Execution time:', time.strftime("%H:%M:%S", time.gmtime(end-start)))
 model.save("fashion_model_aug.h5")
 eval_metrics = model.evaluate(x_test, y_test)

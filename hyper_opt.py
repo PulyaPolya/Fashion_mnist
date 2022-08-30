@@ -10,20 +10,26 @@ from tensorflow import keras
 
 num_classes = 10
 input_shape = (28, 28, 1)
-number_of_tr_ex = 10000
 tf.random.set_seed(1234)
-#(img_train, label_train), (img_test, label_test) = keras.datasets.fashion_mnist.load_data()
 (x_train, y_train), (x_test, y_test) = fashion_mnist.load_data()
-x_train, y_train, x_test, y_test = f.edit_data(x_train[:number_of_tr_ex], y_train[:number_of_tr_ex], x_test, y_test)
+x_train, y_train = f.shift_x_train(x_train, y_train)
+size_data = x_train.shape[0]
+batch_size = 64
+num_classes = 10
+num_iter =20000
+epochs =int ((batch_size / size_data) * num_iter)
+#(img_train, label_train), (img_test, label_test) = keras.datasets.fashion_mnist.load_data()
+
+x_train, y_train, x_test, y_test = f.edit_data(x_train, y_train, x_test, y_test)
 
 def model_builder(hp):
   model = keras.Sequential()
-  hp_units1 = hp.Int('conv1', min_value=32, max_value=64, step=1)
-  hp_units2 = hp.Int('conv2', min_value=32, max_value=64, step=1)
+  hp_units1 = hp.Int('conv1', min_value=32, max_value=128, step=1)
+  hp_units2 = hp.Int('conv2', min_value=32, max_value=128, step=1)
   hp_units3 = hp.Int('conv3', min_value=32, max_value=128, step=1)
   hp_drop1 = hp.Int('drop1', min_value=3, max_value=5, step=1)
   hp_drop2 = hp.Int('drop2', min_value=3, max_value=5, step=1)
-  hp_learning_rate = hp.Choice('learning_rate', values=[1e-2, 1e-3, 1e-4])
+
   model.add(keras.layers.Conv2D(filters = hp_units1,  kernel_size=(5, 5), padding='same', activation='relu', input_shape=input_shape))
   model.add(keras.layers.Conv2D(filters = hp_units2,  kernel_size=(5, 5), padding='same', activation='relu'))
   model.add(keras.layers.MaxPool2D())
@@ -33,7 +39,7 @@ def model_builder(hp):
   model.add(keras.layers.Flatten())
   model.add(keras.layers.Dense(num_classes, activation = 'softmax'))
 
-  model.compile(optimizer=keras.optimizers.Adam(learning_rate=hp_learning_rate),
+  model.compile(optimizer=keras.optimizers.Adam(learning_rate=0.001),
                 loss='categorical_crossentropy',
                 metrics=['acc'])
 
@@ -47,7 +53,7 @@ tuner = kt.Hyperband(model_builder,
 
 
 early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_acc', patience=5, baseline=0.7)
-tuner.search(x_train, y_train, epochs=10, validation_split=0.1, callbacks=[early_stop])
+tuner.search(x_train, y_train, epochs=epochs, validation_split=0.1, callbacks=[early_stop])
 
 # Get the optimal hyperparameters
 best_hps=tuner.get_best_hyperparameters(num_trials=1)[0]

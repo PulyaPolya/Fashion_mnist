@@ -161,15 +161,33 @@ def define_cnn_simplified(conv1, conv2,conv3, dropout1, dropout2):
     return model
 
 
-def shift_image(image):
-    dx = random.randint(0, 2)
-    dy = random.randint(0, 2)
+def shift_image(image, dx=10, dy=10):
+    if dx ==10 and dy ==10:
+        dx = random.randint(0, 1)
+        dy = random.randint(0, 1)
     #image = image.reshape((28, 28))
     shifted_image = shift(image, [dy, dx], cval=0, mode="constant")
     return shifted_image
 def shift_image_np(x_batch):
-    dx = random.randint(0, 1)
-    dy = random.randint(0, 1)
-    x_shifted = np.pad(x_batch, ((0, 0), (dx, 0), (dy, 0)), mode='constant')
-    x_shifted = np.roll(x_shifted, (dx, dy), axis=(1, 2))[:, dx:, dy:]
+    # dx = random.randint(0, 1)
+    # dy = random.randint(0, 1)
+    dx, dy = random.choice([(1,0), (-1,0), (0,1), (0,-1), (0,0)])
+    # dx = random.choice([-1, 0,1])
+    # dy = random.choice([-1, 0, 1])
+    x_shifted = np.pad(x_batch, ((0, 0), (abs(dx), 0), (abs(dy), 0)), mode='constant')
+    x_shifted = np.roll(x_shifted, (dx, dy), axis=(1, 2))[:, abs(dx):, abs(dy):]
     return x_shifted
+
+def shift_x_train(x_train, y_train):
+    x_train_augmented = [image for image in x_train]
+    y_train_augmented = [image for image in y_train]
+    for dx, dy in ((1,0), (-1,0), (0,1), (0,-1)):
+         for image, label in zip(x_train, y_train):
+                 x_train_augmented.append(shift_image(image, dx, dy))
+                 y_train_augmented.append(label)
+    x_train_augmented = np.array(x_train_augmented)
+    y_train_augmented = np.array(y_train_augmented)
+    return x_train_augmented, y_train_augmented
+
+def opposite(x):
+    return 1-x
