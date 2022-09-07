@@ -222,9 +222,9 @@ def shift_x_train_np_not_random(x_train, y_train):
     y_train_augmented = []
     array = [(1, 0), (-1, 0), (0, 1), (0, -1), (0, 0)]
     i = 0
-    for i in range(5):
-        dx, dy = random.choice([(1, 0), (-1, 0), (0, 1), (0, -1), (0, 0)])
-    #for dx, dy in ((1,0), (-1,0), (0,1), (0,-1), (0,0)):
+    # for i in range(5):
+    #     dx, dy = random.choice([(1, 0), (-1, 0), (0, 1), (0, -1), (0, 0)])
+    for dx, dy in ((1,0), (-1,0), (0,1), (0,-1), (0,0)):
 
         shift = list(shift_batch_not_random(x_train,'NAN', dx, dy))
         x_train_augmented+= shift

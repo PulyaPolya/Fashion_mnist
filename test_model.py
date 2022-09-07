@@ -5,7 +5,6 @@ from keras.callbacks import ModelCheckpoint, TensorBoard
 import time
 from tensorflow.keras import layers
 from keras.callbacks import LambdaCallback
-import matplotlib.pyplot as plt
 import numpy as np
 
 class Epoch_Tracker:
@@ -17,7 +16,11 @@ class Epoch_Tracker:
     self.change = True
 
 epoch_track = Epoch_Tracker()
-(x_train, y_train), (x_test, y_test) = fashion_mnist.load_data()
+#(x_train1, y_train1), (x_test, y_test) = fashion_mnist.load_data()
+x_train = np.load('x_train.npy')
+y_train = np.load('y_train.npy')
+x_test = np.load('x_test.npy')
+y_test = np.load('y_test.npy')
 
 start = time.time()
 #x_train, y_train= f.shift_x_train_np_not_random(x_train, y_train)
@@ -117,6 +120,6 @@ end = time.time()
 print('Execution time:', time.strftime("%H:%M:%S", time.gmtime(end-start)))
 model.save("aug_np_model.h5")
 eval_metrics = model.evaluate(x_test, y_test)
-f.save_results(type='layer, shift_np,random, not vect, for each dx dy ', iter = 20000,
+f.save_results(type='np.load, layer, shift_np,random, not vect, for each dx dy ', iter = 20000,
                time = time.strftime("%H:%M:%S", time.gmtime(end-start)), val_acc =history.history['val_acc'][-1],
                test_acc = eval_metrics[1], number=7)
