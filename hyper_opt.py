@@ -3,28 +3,55 @@ from keras.datasets import fashion_mnist
 import keras
 import functions as f
 import numpy as np
-import json
-from timeit import default_timer as timer
-from keras.callbacks import ModelCheckpoint
+from tensorflow.keras import layers
+
 import keras_tuner as kt
 from tensorflow import keras
 
 num_classes = 10
 input_shape = (28, 28, 1)
 tf.random.set_seed(1234)
-x_train = np.load('x_train_shifted.npy.')
-y_train = np.load('y_train_shifted.npy.')
-x_test = np.load('x_test.npy')
-y_test = np.load("y_test.npy")
+(x_train, y_train), (x_test, y_test) = fashion_mnist.load_data()
 x_train, y_train, x_test, y_test = f.edit_data(x_train, y_train, x_test, y_test)
 size_data = x_train.shape[0]
 batch_size = 64
 num_iter =20000
 epochs =int ((batch_size / size_data) * num_iter)
-#(img_train, label_train), (img_test, label_test) = keras.datasets.fashion_mnist.load_data()
+class Epoch_Tracker:
+  def __init__(self):
+     self.epoch = 0
+     self.change = True
+  def increase(self):
+    self.epoch +=1
+    self.change = True
 
+def random_invert_img(x):
+  #print(epoch_track.epoch)
+  if epoch_track.epoch >= epochs:
+     return x
+  x_temp = x.numpy()
+  x_temp = x_temp.reshape(x_temp.shape[0], 28,28)
+  x_shifted = []
+  for image in x_temp:
+       x_shifted.append(f.shift_image_np(image))
+  x_shifted = np.array(x_shifted)
 
+  x_result = x_shifted.reshape(x_temp.shape[0],28,28,1)
 
+  return x_result
+def random_invert():
+  return layers.Lambda(lambda x: random_invert_img(x))
+
+random_invert = random_invert()
+class RandomInvert(layers.Layer):
+  def __init__(self, **kwargs):
+    super().__init__(**kwargs)
+
+  def call(self, x):
+    return random_invert_img(x)
+
+epoch_track = Epoch_Tracker()
+tf.random.set_seed(92)
 def model_builder(hp):
   model = keras.Sequential()
   hp_units1 = hp.Int('conv1', min_value=32, max_value=128, step=1)
@@ -36,6 +63,8 @@ def model_builder(hp):
   hp_kernel_size2 = hp.Int('kernel_size2', min_value=1, max_value=10, step=1)
   hp_kernel_size3 = hp.Int('kernel_size3', min_value=1, max_value=10, step=1)
 
+
+  model.add(RandomInvert())
   model.add(keras.layers.Conv2D(filters = hp_units1,  kernel_size=(hp_kernel_size1, hp_kernel_size1), padding='same', activation='relu', input_shape=input_shape))
   model.add(keras.layers.Conv2D(filters = hp_units2,  kernel_size=(hp_kernel_size2, hp_kernel_size2), padding='same', activation='relu'))
   model.add(keras.layers.MaxPool2D())
@@ -44,22 +73,32 @@ def model_builder(hp):
   model.add(keras.layers.Dropout(hp_drop2/10))
   model.add(keras.layers.Flatten())
   model.add(keras.layers.Dense(num_classes, activation = 'softmax'))
+  hp_learning_rate = hp.Choice('learning rate', values=list(range(5,15)))
 
-  model.compile(optimizer=keras.optimizers.Adam(learning_rate=0.001),
+  hp_optimizer = hp.Choice('optimizer', values=['sgd','rmsprop', 'adam'])
+  if hp_optimizer == 'sgd':
+      optimizer = tf.keras.optimizers.SGD(learning_rate=hp_learning_rate/10000)
+  elif hp_optimizer == 'rmsprop':
+      optimizer = tf.keras.optimizers.RMSprop(learning_rate=hp_learning_rate/10000)
+  elif hp_optimizer == 'adam':
+      optimizer = tf.keras.optimizers.Adam(learning_rate=hp_learning_rate/10000)
+
+
+  model.compile(optimizer= optimizer,
                 loss='categorical_crossentropy',
-                metrics=['acc'])
+                metrics=['acc'], run_eagerly=True)
 
   return model
 
 tuner = kt.Hyperband(model_builder,
                      objective='val_acc',
-                     max_epochs= 21, #max epochs in the end
-                     directory='hyper_search_whole_dataset',
-                     project_name='hyper_whole_dataset')
+                     max_epochs= 9, #max epochs in the end
+                     directory='hyper_search_w60k1',
+                     project_name='hyper_60k1')
 
 
 early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_acc', patience=5, baseline=0.7)
-tuner.search(x_train, y_train, epochs=epochs, validation_split=0.1, callbacks=[early_stop])
+tuner.search(x_train, y_train, epochs=4, validation_split=0.1, callbacks=[early_stop])
 
 # Get the optimal hyperparameters
 best_hps=tuner.get_best_hyperparameters(num_trials=1)[0]
