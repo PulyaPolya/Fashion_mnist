@@ -22,13 +22,18 @@ def define_model(conv1, conv2,conv3, dropout1, dropout2):
         tf.keras.layers.Dense(num_classes, activation='softmax')])
     return model
 
-def print_model(conv1, conv2,conv3, dropout1, dropout2):
+def print_model(conv1, conv2,conv3, dropout1, dropout2,  l_rate, opt):
     print(f'conv1 =  {conv1} '
           f'\n conv2 =  { conv2}'
           f'\n conv3 =  {conv3}'
           f'\n dropout1 =  {dropout1 / 10}'
           f'\n dropout2 =  {dropout2 / 10} '
+          f'\n opt =  {opt / 10} '
+          f'\n l_rate =  {l_rate / 10} '
     )
+
+
+
 
 def train_models(models, numb_iteration, first_run= False, prev_two_val_acc = None):
     val_acc_arr = []
@@ -37,12 +42,18 @@ def train_models(models, numb_iteration, first_run= False, prev_two_val_acc = No
         print(f'Training for a model number {models.index(hyper_params)+1}, {numb_iteration}th iteration')
         print(f'The parameters are: ')
         print_model(conv1=hyper_params[0], conv2=hyper_params[1], conv3=hyper_params[2],
-                             dropout1=hyper_params[3], dropout2=hyper_params[4])
+                             dropout1=hyper_params[3], dropout2=hyper_params[4], l_rate=hyper_params[5], opt= hyper_params[6])
+
         early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_acc', patience=5, baseline=0.7)
         model = define_model(conv1=hyper_params[0], conv2=hyper_params[1], conv3=hyper_params[2],
                              dropout1=hyper_params[3], dropout2=hyper_params[4])
-        model.compile(optimizer=tf.keras.optimizers.Adam(
-            learning_rate=3e-4), loss='categorical_crossentropy', metrics=['acc'])
+        if hyper_params[6] == 'sgd':
+            optimizer = tf.keras.optimizers.SGD(learning_rate=hyper_params[5] / 10000)
+        elif hyper_params[6] == 'rmsprop':
+            optimizer = tf.keras.optimizers.RMSprop(learning_rate=hyper_params[5] / 10000)
+        elif hyper_params[6] == 'adam':
+            optimizer = tf.keras.optimizers.Adam(learning_rate=hyper_params[5] / 10000)
+        model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['acc'])
         history = model.fit(x_train, y_train,
                             batch_size=batch_size,
                             epochs=epochs,
@@ -69,10 +80,10 @@ batch_size = 64
 num_classes = 10
 epochs = 10
 numb_of_runs = 50
-range_dict = {'conv1' : [32, 64], 'conv2' :[32, 64] ,'conv3' : [32, 128],
-              'dropout1' : [3, 5], 'dropout2' : [3,5]}
+# range_dict = {'conv1' : [32, 64], 'conv2' :[32, 64] ,'conv3' : [32, 128],
+#               'dropout1' : [3, 5], 'dropout2' : [3,5] }
 best_acc = -1
-evolution = Evolution(range_dict, numb_of_indiv=4)
+evolution = Evolution(numb_of_indiv=4)
 models = evolution.initialize()
 val_acc_arr = train_models(evolution.individuals, 1, first_run= True)
 full_models = models[:]

@@ -1,8 +1,9 @@
 import random
 from operator import itemgetter
 class Evolution:
-    def __init__(self, ranges_dict, numb_of_indiv):
-        self.ranges_dict =ranges_dict           #provides a range for each parameter
+    def __init__(self, numb_of_indiv):
+        self.ranges_dict = {'conv1' : [32, 64], 'conv2' :[32, 64] ,'conv3' : [32, 128],
+              'dropout1' : [3, 5], 'dropout2' : [3,5], 'learning_rate': [5, 15], 'optimizer' : ['sgd','rmsprop', 'adam'],}          #provides a range for each parameter
         self.params = []
         self.numb_of_indiv = numb_of_indiv      # max number of models
         self.individuals = []                   # array containing all models
@@ -11,7 +12,10 @@ class Evolution:
         for i in range(self.numb_of_indiv):
             individual = []
             for elem in self.ranges_dict:
-                param = random.randint(self.ranges_dict[elem][0], self.ranges_dict[elem][1])
+                if elem != 'optimizer':
+                    param = random.randint(self.ranges_dict[elem][0], self.ranges_dict[elem][1])
+                else:
+                    param = random.choice(self.ranges_dict[elem])
                 individual.append(param)
             self.individuals.append(individual)
         return self.individuals
