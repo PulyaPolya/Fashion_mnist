@@ -7,8 +7,10 @@ from sklearn.utils import shuffle
 from keras.datasets import mnist
 from keras.datasets import fashion_mnist
 from scipy.ndimage.interpolation import shift
+from tensorflow.keras import layers
 import random
 import matplotlib.pyplot as plt
+from keras.callbacks import LambdaCallback
 
 
 def edit_data(x_train, y_train, x_test, y_test):
@@ -288,3 +290,100 @@ def save_results(type, iter, time, val_acc, test_acc, number):
     df = pd.DataFrame([[type, iter, time, val_acc, test_acc]],
                      index=[number], columns=['type', '#iter', 'time', 'val_acc', 'test_acc'])
     df.to_csv("results.csv", mode='a', index=True, header=header)
+
+
+def test_function(epochs, conv1, conv2, conv3, dropout1, dropout2, kernel1, kernel2, kernel3, learning_rate, optimizer):
+
+    class Epoch_Tracker:
+        def __init__(self):
+            self.epoch = 0
+            self.change = True
+
+        def increase(self):
+            self.epoch += 1
+            self.change = True
+
+    epoch_track = Epoch_Tracker()
+    (x_train, y_train), (x_test, y_test) = fashion_mnist.load_data()
+
+    x_train, y_train, x_test, y_test = edit_data(x_train[:50], y_train[:50], x_test, y_test)
+
+    size_data = x_train.shape[0]
+    batch_size = 64
+    num_classes = 10
+    num_iter = 50000
+
+    def random_invert_img(x):
+        # print(epoch_track.epoch)
+        if epoch_track.epoch >= epochs:
+            return x
+        x_temp = x.numpy()
+        x_temp = x_temp.reshape(x_temp.shape[0], 28, 28)
+        x_shifted = []
+        for image in x_temp:
+            x_shifted.append(shift_image_np(image))
+        x_shifted = np.array(x_shifted)
+
+        x_result = x_shifted.reshape(x_temp.shape[0], 28, 28, 1)
+        return x_result
+
+    def random_invert():
+        return layers.Lambda(lambda x: random_invert_img(x))
+
+    random_invert = random_invert()
+
+    class RandomInvert(layers.Layer):
+        def __init__(self, **kwargs):
+            super().__init__(**kwargs)
+
+        def call(self, x):
+            return random_invert_img(x)
+
+    tf.random.set_seed(92)
+    input_shape = (28, 28, 1)
+    if optimizer == 'sgd':
+        optimizer = tf.keras.optimizers.SGD(learning_rate=learning_rate / 10000)
+    elif optimizer == 'rmsprop':
+        optimizer = tf.keras.optimizers.RMSprop(learning_rate=learning_rate / 10000)
+    elif optimizer == 'adam':
+        optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate / 10000)
+    model = tf.keras.models.Sequential([
+        RandomInvert(),
+        tf.keras.layers.Conv2D(conv1, (kernel1, kernel1), padding='same', activation='relu', input_shape=input_shape),
+        tf.keras.layers.Conv2D(conv2, (kernel2, kernel2), padding='same', activation='relu'),
+        tf.keras.layers.MaxPool2D(),
+        tf.keras.layers.Dropout(dropout1 / 10),
+        tf.keras.layers.Conv2D(conv3, (kernel3, kernel3), padding='same', activation='relu'),
+        tf.keras.layers.Dropout(dropout2 / 10),
+        tf.keras.layers.Flatten(),
+        tf.keras.layers.Dense(10, activation='softmax')])
+    #early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_acc', patience=10, baseline= 0.5)
+    num_ep = LambdaCallback(
+        on_epoch_end=lambda epoch, logs: epoch_track.increase())
+    callbacks_list = [num_ep]
+
+    model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['acc'], run_eagerly=True)
+
+    history = model.fit(x_train, y_train,
+                        batch_size=batch_size,
+                        epochs=epochs,
+                        validation_split=0.1,
+                        callbacks=callbacks_list,
+                        verbose=1
+                        )
+    val_acc = max(history.history['val_acc'])
+    return val_acc
+
+
+def print_model(conv1, conv2, conv3, dropout1, dropout2, kernel1, kernel2, kernel3, learning_rate, optimizer):
+    print(f'conv1 =  {conv1} '
+          f'\n conv2 =  { conv2}'
+          f'\n conv3 =  {conv3}'
+          f'\n dropout1 =  {dropout1 / 10}'
+          f'\n dropout2 =  {dropout2 / 10} '
+          f'\n kernel1 =  {kernel1} '
+          f'\n kernel2 =  {kernel2} '
+          f'\n kernel3 =  {kernel3} '
+          f'\n optimizer =  {optimizer} '
+          f'\n learning_rate =  {learning_rate} '
+    )

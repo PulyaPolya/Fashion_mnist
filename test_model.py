@@ -16,11 +16,7 @@ class Epoch_Tracker:
     self.change = True
 
 epoch_track = Epoch_Tracker()
-#(x_train1, y_train1), (x_test, y_test) = fashion_mnist.load_data()
-x_train = np.load('x_train.npy')
-y_train = np.load('y_train.npy')
-x_test = np.load('x_test.npy')
-y_test = np.load('y_test.npy')
+(x_train, y_train), (x_test, y_test) = fashion_mnist.load_data()
 
 start = time.time()
 #x_train, y_train= f.shift_x_train_np_not_random(x_train, y_train)
@@ -31,15 +27,12 @@ x_train, y_train, x_test, y_test = f.edit_data(x_train, y_train, x_test, y_test)
 size_data = x_train.shape[0]
 batch_size = 64
 num_classes = 10
-num_iter =20000
+num_iter =50000
 epochs =int ((batch_size / size_data) * num_iter)
 #epochs = 1
 
-NAME = "aug_np-1-{}".format(int(time.time()))
+NAME = "bayes-{}".format(int(time.time()))
 
-conv1=59
-conv2=33
-conv3=112
 def random_invert_img(x):
   #print(epoch_track.epoch)
   if epoch_track.epoch >= epochs:
@@ -62,15 +55,6 @@ def random_invert_img(x):
   #f.plot( x_train_big.reshape(x_train_big.shape[0], 28,28)[0], 0, iterable  = False)
 
   x_result = x_shifted.reshape(x_temp.shape[0],28,28,1)
-  #print(np.array_equal(x_result[1], x_train_big[0]))
-  # shoe2 =  x_train_big[0].reshape(28,28)
-  # #print(x_result[1],x_train_big[0] )
-  # print(np.array_equal(shoe1, shoe2))
-  # print(np.allclose(shoe1, shoe2))
-  # print((shoe1 == shoe2).all())
-  # #print(shoe1, shoe2)
-  # print(f.compare_arr(shoe1, shoe2))
-
   return x_result
 def random_invert():
   return layers.Lambda(lambda x: random_invert_img(x))
@@ -86,14 +70,24 @@ class RandomInvert(layers.Layer):
 
 tf.random.set_seed(92)
 input_shape = (28, 28, 1)
+conv1 = 75
+conv2 = 70
+cov3 = 77
+drop1 = 4
+drop2 = 4
+kernel1 = 3
+kernel2=2
+kernel3 = 6
+l_rate = 11
+optimizer = tf.keras.optimizers.RMSprop(learning_rate=l_rate/10000)
 model = tf.keras.models.Sequential([
     RandomInvert(),
-    tf.keras.layers.Conv2D(59, (5, 5), padding='same', activation='relu', input_shape=input_shape),
-    tf.keras.layers.Conv2D(33, (5, 5), padding='same', activation='relu'),
+    tf.keras.layers.Conv2D(conv1, (kernel1, kernel1), padding='same', activation='relu', input_shape=input_shape),
+    tf.keras.layers.Conv2D(conv2, (kernel2, kernel2), padding='same', activation='relu'),
     tf.keras.layers.MaxPool2D(),
-    tf.keras.layers.Dropout(4 / 10),
-    tf.keras.layers.Conv2D(112, (3, 3), padding='same', activation='relu'),
-    tf.keras.layers.Dropout(3/ 10),
+    tf.keras.layers.Dropout(drop1 / 10),
+    tf.keras.layers.Conv2D(cov3, (kernel3, kernel3), padding='same', activation='relu'),
+    tf.keras.layers.Dropout(drop2/ 10),
     tf.keras.layers.Flatten(),
     tf.keras.layers.Dense(10, activation='softmax')])
 tensorboard = TensorBoard(log_dir='experiments/{}'.format(NAME), update_freq='batch',)
@@ -106,8 +100,7 @@ callbacks_list = [num_ep, checkpoint]
 
 
 
-model.compile(optimizer=tf.keras.optimizers.Adam(
-    learning_rate=3e-4), loss='categorical_crossentropy', metrics=['acc'],  run_eagerly=True)
+model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['acc'],  run_eagerly=True)
 
 history = model.fit(x_train, y_train,
                     batch_size=batch_size,
@@ -118,8 +111,7 @@ history = model.fit(x_train, y_train,
                     )
 end = time.time()
 print('Execution time:', time.strftime("%H:%M:%S", time.gmtime(end-start)))
-model.save("aug_np_model.h5")
 eval_metrics = model.evaluate(x_test, y_test)
-f.save_results(type='np.load, layer, shift_np,random, not vect, for each dx dy ', iter = 20000,
-               time = time.strftime("%H:%M:%S", time.gmtime(end-start)), val_acc =history.history['val_acc'][-1],
-               test_acc = eval_metrics[1], number=7)
+# f.save_results(type='np.load, layer, shift_np,random, not vect, for each dx dy ', iter = 20000,
+# #                time = time.strftime("%H:%M:%S", time.gmtime(end-start)), val_acc =history.history['val_acc'][-1],
+# #                test_acc = eval_metrics[1], number=7)
