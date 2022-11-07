@@ -75,7 +75,7 @@ def random_invert_img(x):
   #     sing_ex = f.shift_image(x_temp[i])
   #     x_result.append(sing_ex)
   # x_result = np.array(x_result)
-  x_shifted = f.shift_image_np(x_temp)
+  x_shifted = f.shift_batch_np(x_temp)
   x_result = x_shifted.reshape(x_temp.shape[0],28,28,1)
   return x_result
 def random_invert():
@@ -90,7 +90,6 @@ class RandomInvert(layers.Layer):
     return random_invert_img(x)
 
 
-input_shape = (28, 28, 1)
 model = tf.keras.models.Sequential([
     #RandomInvert(),
     tf.keras.layers.Conv2D(59, (5, 5), padding='same', activation='relu', input_shape=input_shape),

@@ -54,14 +54,14 @@ epoch_track = Epoch_Tracker()
 tf.random.set_seed(92)
 def model_builder(hp):
   model = keras.Sequential()
-  hp_units1 = hp.Int('conv1', min_value=32, max_value=128, step=1)
-  hp_units2 = hp.Int('conv2', min_value=32, max_value=128, step=1)
-  hp_units3 = hp.Int('conv3', min_value=32, max_value=128, step=1)
-  hp_drop1 = hp.Int('drop1', min_value=3, max_value=5, step=1)
-  hp_drop2 = hp.Int('drop2', min_value=3, max_value=5, step=1)
-  hp_kernel_size1 = hp.Int('kernel_size1', min_value=1, max_value=10, step = 1)
-  hp_kernel_size2 = hp.Int('kernel_size2', min_value=1, max_value=10, step=1)
-  hp_kernel_size3 = hp.Int('kernel_size3', min_value=1, max_value=10, step=1)
+  hp_units1 = hp.Int('conv1', min_value=40, max_value=140, step=1)
+  hp_units2 = hp.Int('conv2', min_value=40, max_value=100, step=1)
+  hp_units3 = hp.Int('conv3', min_value=32, max_value=80, step=1)
+  hp_drop1 = hp.Int('drop1', min_value=3, max_value=7, step=1)
+  hp_drop2 = hp.Int('drop2', min_value=3, max_value=6, step=1)
+  hp_kernel_size1 = hp.Int('kernel_size1', min_value=1, max_value=4, step = 1)
+  hp_kernel_size2 = hp.Int('kernel_size2', min_value=1, max_value=7, step=1)
+  hp_kernel_size3 = hp.Int('kernel_size3', min_value=2, max_value=10, step=1)
 
 
   model.add(RandomInvert())
@@ -90,15 +90,15 @@ def model_builder(hp):
 
   return model
 
-tuner = kt.Hyperband(model_builder,
+tuner = kt.RandomSearch(model_builder,
                      objective='val_acc',
-                     max_epochs= 9, #max epochs in the end
-                     directory='hyper_search_w60k1',
-                     project_name='hyper_60k1')
+                     max_trials= 100, #max epochs in the end
+                     directory='random_neww',
+                     project_name='random_neww')
 
 
 early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_acc', patience=5, baseline=0.7)
-tuner.search(x_train, y_train, epochs=4, validation_split=0.1, callbacks=[early_stop])
+tuner.search(x_train, y_train, epochs=9, validation_split=0.1, callbacks=[early_stop])
 
 # Get the optimal hyperparameters
 best_hps=tuner.get_best_hyperparameters(num_trials=1)[0]
