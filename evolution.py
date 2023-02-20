@@ -2,9 +2,9 @@ import random
 from operator import itemgetter
 class Evolution:
     def __init__(self, numb_of_indiv):
-        self.ranges_dict = {'conv1' : [40, 140], 'conv2' :[32, 64] ,'conv3' : [32, 128], 'kernel1' : [3,5,7],
-                            'kernel2': [3,5,7, 9],'kernel3' : [3,5,7,9,11],
-              'dropout1' : [3, 5], 'dropout2' : [3,5], 'learning_rate': [5, 15], 'optimizer' : ['nadam','rmsprop', 'adam'],}          #provides a range for each parameter
+        self.ranges_dict = {'conv1' : [40, 140], 'conv2' :[40, 100] ,'conv3' : [32, 80], 'kernel1' : [3,5,7],
+                            'kernel2': [3,5,7, 9],'kernel3' : [3,5,7,9,11, 13,15],
+              'dropout1' : [3,6], 'dropout2' : [3,6], 'learning_rate': [5, 15], 'optimizer' : ['nadam','rmsprop', 'adam'],}          #provides a range for each parameter
         self.params = []
         self.numb_of_indiv = numb_of_indiv      # max number of models
         self.individuals = []                   # array containing all models
