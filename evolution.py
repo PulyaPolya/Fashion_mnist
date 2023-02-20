@@ -2,8 +2,9 @@ import random
 from operator import itemgetter
 class Evolution:
     def __init__(self, numb_of_indiv):
-        self.ranges_dict = {'conv1' : [32, 64], 'conv2' :[32, 64] ,'conv3' : [32, 128],
-              'dropout1' : [3, 5], 'dropout2' : [3,5], 'learning_rate': [5, 15], 'optimizer' : ['sgd','rmsprop', 'adam'],}          #provides a range for each parameter
+        self.ranges_dict = {'conv1' : [40, 140], 'conv2' :[32, 64] ,'conv3' : [32, 128], 'kernel1' : [3,5,7],
+                            'kernel2': [3,5,7, 9],'kernel3' : [3,5,7,9,11],
+              'dropout1' : [3, 5], 'dropout2' : [3,5], 'learning_rate': [5, 15], 'optimizer' : ['nadam','rmsprop', 'adam'],}          #provides a range for each parameter
         self.params = []
         self.numb_of_indiv = numb_of_indiv      # max number of models
         self.individuals = []                   # array containing all models
@@ -12,7 +13,7 @@ class Evolution:
         for i in range(self.numb_of_indiv):
             individual = []
             for elem in self.ranges_dict:
-                if elem != 'optimizer':
+                if elem != 'optimizer' and elem != 'kernel1' and elem != 'kernel2' and elem != 'kernel3':
                     param = random.randint(self.ranges_dict[elem][0], self.ranges_dict[elem][1])
                 else:
                     param = random.choice(self.ranges_dict[elem])
@@ -59,13 +60,5 @@ class Evolution:
         return (next_generation[2:], next_generation)
 
 
-
-# evol = Evolution({'a':[0,10],'b': [20,30], 'c':[40,50]}, 6)
-# evol.initialize()
-# print(evol.individuals)
-# evol.run_evolution(val_acc_arr=[0.6, 0.4, 1, 0.5, 0.3, 0.2])
-# print(evol.individuals)
-# evol.run_evolution(val_acc_arr=[0.5, 0.2, 0.1, 0.35, 0.9, 0.7])
-# print(evol.individuals)
 
 

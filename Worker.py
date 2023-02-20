@@ -21,7 +21,7 @@ import ConfigSpace.hyperparameters as CSH
 from hpbandster.core.worker import Worker
 
 import logging
-
+val = []
 
 class MyWorker(Worker):
     def __init__(self, N_train=8192, N_valid=1024, **kwargs):
@@ -36,8 +36,8 @@ class MyWorker(Worker):
 
             # the data, split between train and test sets
             (x_train, y_train), (x_test, y_test) =fashion_mnist.load_data()
-            x_train = x_train[:1000]
-            y_train = y_train[:1000]
+            x_train = x_train
+            y_train = y_train
 
             if K.image_data_format() == 'channels_first':
                     x_train = x_train.reshape(x_train.shape[0], 1, img_rows, img_cols)
@@ -76,33 +76,28 @@ class MyWorker(Worker):
 
         model = Sequential()
 
-        model.add(Conv2D(config['num_filters_1'], kernel_size=(3, 3),
+        model.add(Conv2D(config['num_filters_1'], kernel_size=(config['num_kernel_1'], config['num_kernel_1']),
                          activation='relu',
                          input_shape=self.input_shape))
-        model.add(MaxPooling2D(pool_size=(2, 2)))
 
-        if config['num_conv_layers'] > 1:
-            model.add(Conv2D(config['num_filters_2'], kernel_size=(3, 3),
-                             activation='relu',
-                             input_shape=self.input_shape))
-            model.add(MaxPooling2D(pool_size=(2, 2)))
-
-        if config['num_conv_layers'] > 2:
-            model.add(Conv2D(config['num_filters_3'], kernel_size=(3, 3),
-                             activation='relu',
-                             input_shape=self.input_shape))
-            model.add(MaxPooling2D(pool_size=(2, 2)))
-
-        model.add(Dropout(config['dropout_rate']))
+        model.add(Conv2D(config['num_filters_2'], kernel_size=(config['num_kernel_2'], config['num_kernel_2']),
+                         activation='relu'))
+        model.add(keras.layers.MaxPool2D())
+        model.add(Dropout(config['dropout_rate1']))
+        model.add(Conv2D(config['num_filters_3'], kernel_size=(config['num_kernel_3'], config['num_kernel_3']),
+                         activation='relu'))
+        model.add(Dropout(config['dropout_rate2']))
         model.add(Flatten())
-        model.add(Dense(config['num_fc_units'], activation='relu'))
-        model.add(Dropout(config['dropout_rate']))
         model.add(Dense(self.num_classes, activation='softmax'))
 
         if config['optimizer'] == 'Adam':
-            optimizer = keras.optimizers.Adam(lr=config['lr'])
+
+            optimizer = keras.optimizers.Adam(learning_rate=config['lr'])
+        elif config['optimizer'] == 'SGD':
+            optimizer = keras.optimizers.SGD(learning_rate=config['lr'])
         else:
-            optimizer = keras.optimizers.SGD(lr=config['lr'], momentum=config['sgd_momentum'])
+            optimizer = keras.optimizers.RMSprop(learning_rate=config['lr'])
+
 
         model.compile(loss=keras.losses.categorical_crossentropy,
                       optimizer=optimizer,
@@ -119,6 +114,9 @@ class MyWorker(Worker):
         test_score = model.evaluate(self.x_test, self.y_test, verbose=1)
         end = time.time()
         print(f'total elapsed time {time.strftime("%H:%M:%S", time.gmtime(end-self.time))}')
+        #print(f'test_acc : {test_score[1]},train accuracy {train_score[1]}, validation accuracy {val_score[1]} ')
+        val.append(val_score[1])
+        print(f'max valacc: {max(val)}')
         # import IPython; IPython.embed()
         return ({
             'loss': 1 - val_score[1],  # remember: HpBandSter always minimizes!
@@ -133,39 +131,35 @@ class MyWorker(Worker):
 
     @staticmethod
     def get_configspace():
-        """
-        It builds the configuration space with the needed hyperparameters.
-        It is easily possible to implement different types of hyperparameters.
-        Beside float-hyperparameters on a log scale, it is also able to handle categorical input parameter.
-        :return: ConfigurationsSpace-Object
-        """
         cs = CS.ConfigurationSpace()
 
-        lr = CSH.UniformFloatHyperparameter('lr', lower=1e-6, upper=1e-1, default_value='1e-2', log=True)
+        lr = CSH.UniformFloatHyperparameter('lr', lower=1e-6, upper=1e-1, log=True)
 
-        # For demonstration purposes, we add different optimizers as categorical hyperparameters.
-        # To show how to use conditional hyperparameters with ConfigSpace, we'll add the optimizers 'Adam' and 'SGD'.
-        # SGD has a different parameter 'momentum'.
-        optimizer = CSH.CategoricalHyperparameter('optimizer', ['Adam', 'SGD'])
+        optimizer = CSH.CategoricalHyperparameter('optimizer', ['Adam', 'SGD', 'RmsProp'])
 
-        sgd_momentum = CSH.UniformFloatHyperparameter('sgd_momentum', lower=0.0, upper=0.99, default_value=0.9,
+        sgd_momentum = CSH.UniformFloatHyperparameter('sgd_momentum', lower=0.0, upper=0.99,
                                                       log=False)
 
         cs.add_hyperparameters([lr, optimizer, sgd_momentum])
 
-        num_conv_layers = CSH.UniformIntegerHyperparameter('num_conv_layers', lower=1, upper=3, default_value=2)
+        #num_conv_layers = CSH.UniformIntegerHyperparameter('num_conv_layers', lower=1, upper=3, default_value=2)
 
-        num_filters_1 = CSH.UniformIntegerHyperparameter('num_filters_1', lower=4, upper=64, log=True)
-        num_filters_2 = CSH.UniformIntegerHyperparameter('num_filters_2', lower=4, upper=64, default_value=16, log=True)
-        num_filters_3 = CSH.UniformIntegerHyperparameter('num_filters_3', lower=4, upper=64, default_value=16, log=True)
+        num_filters_1 = CSH.UniformIntegerHyperparameter('num_filters_1', lower=40, upper=140, log=True)
+        num_filters_2 = CSH.UniformIntegerHyperparameter('num_filters_2', lower=40, upper=100, log=True)
+        num_filters_3 = CSH.UniformIntegerHyperparameter('num_filters_3', lower=32, upper=80,  log=True)
+        num_kernel_1 = CSH.UniformIntegerHyperparameter('num_kernel_1', lower=1, upper=4, log=True)
+        num_kernel_2 = CSH.UniformIntegerHyperparameter('num_kernel_2', lower=1, upper=7, log=True)
+        num_kernel_3 = CSH.UniformIntegerHyperparameter('num_kernel_3', lower=2, upper=10, log=True)
 
-        cs.add_hyperparameters([num_conv_layers, num_filters_1, num_filters_2, num_filters_3])
-
-        dropout_rate = CSH.UniformFloatHyperparameter('dropout_rate', lower=0.0, upper=0.9, default_value=0.5,
+        cs.add_hyperparameters([num_filters_1, num_filters_2, num_filters_3])
+        cs.add_hyperparameters([ num_kernel_1,num_kernel_2,num_kernel_3])
+        dropout_rate1 = CSH.UniformFloatHyperparameter('dropout_rate1', lower=0.3, upper=0.7,
                                                       log=False)
-        num_fc_units = CSH.UniformIntegerHyperparameter('num_fc_units', lower=8, upper=256, default_value=32, log=True)
+        dropout_rate2 = CSH.UniformFloatHyperparameter('dropout_rate2', lower=0.3, upper=0.6,
+                                                      log=False)
+        num_fc_units = CSH.UniformIntegerHyperparameter('num_fc_units', lower=8, upper=256, log=True)
 
-        cs.add_hyperparameters([dropout_rate, num_fc_units])
+        cs.add_hyperparameters([dropout_rate1,dropout_rate2, num_fc_units])
 
         # The hyperparameter sgd_momentum will be used,if the configuration
         # contains 'SGD' as optimizer.
@@ -173,10 +167,10 @@ class MyWorker(Worker):
         cs.add_condition(cond)
 
         # You can also use inequality conditions:
-        cond = CS.GreaterThanCondition(num_filters_2, num_conv_layers, 1)
-        cs.add_condition(cond)
-
-        cond = CS.GreaterThanCondition(num_filters_3, num_conv_layers, 2)
-        cs.add_condition(cond)
+        # cond = CS.GreaterThanCondition(num_filters_2, num_conv_layers, 1)
+        # cs.add_condition(cond)
+        #
+        # cond = CS.GreaterThanCondition(num_filters_3, num_conv_layers, 2)
+        # cs.add_condition(cond)
 
         return cs

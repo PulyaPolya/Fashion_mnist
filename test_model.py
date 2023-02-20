@@ -31,7 +31,7 @@ num_iter =50000
 epochs =int ((batch_size / size_data) * num_iter)
 #epochs = 1
 
-NAME = "bayes-{}".format(int(time.time()))
+NAME = "Bayes weird"
 
 def random_invert_img(x):
   #print(epoch_track.epoch)
@@ -70,16 +70,16 @@ class RandomInvert(layers.Layer):
 
 tf.random.set_seed(92)
 input_shape = (28, 28, 1)
-conv1 = 75
-conv2 = 70
-cov3 = 77
-drop1 = 4
-drop2 = 4
-kernel1 = 3
-kernel2=2
-kernel3 = 6
-l_rate = 11
-optimizer = tf.keras.optimizers.RMSprop(learning_rate=l_rate/10000)
+conv1 = 140
+conv2 = 100
+cov3 = 80
+drop1 = 7
+drop2 = 3
+kernel1 = 4
+kernel2=7
+kernel3 = 10
+l_rate = 1
+optimizer =tf.keras.optimizers.Adam(learning_rate=l_rate/10000)
 model = tf.keras.models.Sequential([
     RandomInvert(),
     tf.keras.layers.Conv2D(conv1, (kernel1, kernel1), padding='same', activation='relu', input_shape=input_shape),
@@ -90,13 +90,13 @@ model = tf.keras.models.Sequential([
     tf.keras.layers.Dropout(drop2/ 10),
     tf.keras.layers.Flatten(),
     tf.keras.layers.Dense(10, activation='softmax')])
-tensorboard = TensorBoard(log_dir='experiments/{}'.format(NAME), update_freq='batch',)
+tensorboard = TensorBoard(log_dir='testing/{}'.format(NAME), update_freq='batch',)
 #early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_acc', patience=10, baseline= 0.5)
 filepath = 'cnn_saved_model/aug_np_weights-improvement--{epoch:02d}-{val_loss:.2f}.hdf5'
 checkpoint = ModelCheckpoint(filepath, monitor = 'val_acc',verbose=1,  save_best_only=True, mode='max')
 num_ep = LambdaCallback(
     on_epoch_end=lambda epoch,logs: epoch_track.increase())
-callbacks_list = [num_ep, checkpoint]
+callbacks_list = [num_ep, checkpoint, tensorboard]
 
 
 

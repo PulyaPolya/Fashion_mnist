@@ -90,17 +90,17 @@ def model_builder(hp):
 
   return model
 
-tuner = kt.RandomSearch(model_builder,
+tuner = kt.BayesianOptimization(model_builder,
                      objective='val_acc',
                      max_trials= 100, #max epochs in the end
-                     directory='random_neww',
-                     project_name='random_neww')
+                     directory='bayes111',
+                     project_name='bayes111')
 
 
 early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_acc', patience=5, baseline=0.7)
 tuner.search(x_train, y_train, epochs=9, validation_split=0.1, callbacks=[early_stop])
 
-# Get the optimal hyperparameters
+# Get the optimal hyperparame   ters
 best_hps=tuner.get_best_hyperparameters(num_trials=1)[0]
 
 # print(f"""
