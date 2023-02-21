@@ -10,7 +10,7 @@ import hpbandster.core.result as hpres
 from hpbandster.optimizers import BOHB as BOHB
 # from hpbandster.examples.commons import MyWorker
 from Worker import MyWorker
-
+import hpbandster.core.result as hpres
 
 
 parser = argparse.ArgumentParser(description='Example 1 - sequential and local execution.')
@@ -40,8 +40,10 @@ w.run(background=True)
 # Now we can create an optimizer object and start the run.
 # Here, we run BOHB, but that is not essential.
 # The run method will return the `Result` that contains all runs performed.
+result_logger = hpres.json_result_logger(directory=args.shared_directory, overwrite=False)
 bohb = BOHB(  configspace = w.get_configspace(),
               run_id = 'example1', nameserver='127.0.0.1',
+              result_logger=result_logger,
               min_budget=args.min_budget, max_budget=args.max_budget
            )
 res = bohb.run(n_iterations=args.n_iterations)

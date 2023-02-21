@@ -1,15 +1,88 @@
+from __future__ import print_function
 from evolution import Evolution
 import tensorflow as tf
-from keras.datasets import mnist
+import numpy as np
 from keras.datasets import fashion_mnist
-import keras
 import functions as f
 from operator import itemgetter
 import time
+from tensorflow.keras import layers
+
+import sys
+import threading
+from time import sleep
+
+try:
+    import thread
+except ImportError:
+    import _thread as thread
+try:
+    range, _print = xrange, print
+    def print(*args, **kwargs):
+        flush = kwargs.pop('flush', False)
+        _print(*args, **kwargs)
+        if flush:
+            kwargs.get('file', sys.stdout).flush()
+except NameError:
+    pass
+def quit_function(fn_name):
+    # print to stderr, unbuffered in Python 2.
+    print('{0} took too long'.format(fn_name), file=sys.stderr)
+    sys.stderr.flush() # Python 3 stderr is likely buffered.
+    thread.interrupt_main() # raises KeyboardInterrupt
+def exit_after(s):
+    '''
+    use as decorator to exit process if
+    function takes longer than s seconds
+    '''
+    def outer(fn):
+        def inner(*args, **kwargs):
+            timer = threading.Timer(s, quit_function, args=[fn.__name__])
+            timer.start()
+            try:
+                result = fn(*args, **kwargs)
+            finally:
+                timer.cancel()
+            return result
+        return inner
+    return outer
+class Epoch_Tracker:
+  def __init__(self):
+     self.epoch = 0
+     self.change = True
+  def increase(self):
+    self.epoch +=1
+    self.change = True
+
+epoch_track = Epoch_Tracker()
+def random_invert_img(x):
+  if epoch_track.epoch >= epochs:
+      return x
+  x_temp = x.numpy()
+  x_temp = x_temp.reshape(x_temp.shape[0], 28,28)
+  x_shifted = []
+  for image in x_temp:
+      x_shifted.append(f.shift_image_np(image))
+  x_shifted = np.array(x_shifted)
+  x_result = x_shifted.reshape(x_temp.shape[0],28,28,1)
+  return x_result
+
+def random_invert():
+  return layers.Lambda(lambda x: random_invert_img(x))
+
+random_invert = random_invert()
+class RandomInvert(layers.Layer):
+  def __init__(self, **kwargs):
+    super().__init__(**kwargs)
+
+  def call(self, x):
+    return random_invert_img(x)
+
 start = time.time()
 tf.random.set_seed(1234)
 def define_model(conv1, conv2,conv3, kernel1, kernel2, kernel3, dropout1, dropout2):
     model = tf.keras.models.Sequential([
+        RandomInvert(),
         tf.keras.layers.Conv2D(conv1, (kernel1, kernel1), padding='same', activation='relu', input_shape=input_shape),
         tf.keras.layers.Conv2D(conv2, ( kernel2, kernel2), padding='same', activation='relu'),
         tf.keras.layers.MaxPool2D(),
@@ -34,13 +107,11 @@ def print_model(conv1, conv2,conv3, kernel1, kernel2, kernel3, dropout1, dropout
     )
 
 
-
-
 def train_models(models, numb_iteration, first_run= False, prev_two_val_acc = None):
     val_acc_arr = []
     for hyper_params in models:
         print('-----------------------------------------------')
-        print(f'Training for a model number {models.index(hyper_params)+1}, {numb_iteration}th iteration')
+        print(f'Training for a model number {models.index(hyper_params)+1}, {numb_iteration} iteration')
         print(f'The parameters are: ')
         print_model(conv1=hyper_params[0], conv2=hyper_params[1], conv3=hyper_params[2],  kernel1 = hyper_params[3],
                     kernel2=hyper_params[4], kernel3 = hyper_params[5],
@@ -56,7 +127,7 @@ def train_models(models, numb_iteration, first_run= False, prev_two_val_acc = No
             optimizer = tf.keras.optimizers.RMSprop(learning_rate=hyper_params[8] / 10000)
         elif hyper_params[9] == 'adam':
             optimizer = tf.keras.optimizers.Adam(learning_rate=hyper_params[8] / 10000)
-        model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['acc'])
+        model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['acc'], run_eagerly=True)
         history = model.fit(x_train, y_train,
                             batch_size=batch_size,
                             epochs=epochs,
@@ -73,49 +144,53 @@ def get_best_model(val_acc_arr, models):
     best_model = models[index_best_model].copy()
     return best_model
 
-(x_train, y_train), (x_test, y_test) =fashion_mnist.load_data()
+
+(x_train, y_train), (x_test, y_test) = fashion_mnist.load_data()
 input_shape = (28, 28, 1)
-number_of_tr_ex = 1000
 x_train, y_train, x_test, y_test = f.edit_data(x_train, y_train,
                                                x_test, y_test)
 
 batch_size = 64
 num_classes = 10
 epochs = 9
-numb_of_runs = 50
-best_acc = -1
-evolution = Evolution(numb_of_indiv=4)
-models = evolution.initialize()
-val_acc_arr = train_models(evolution.individuals, 1, first_run= True)
-full_models = models[:]
-print(val_acc_arr)
-for i in range(numb_of_runs):
-    if max(val_acc_arr) > best_acc:
-        best_acc = max(val_acc_arr)
-        best_model = get_best_model(val_acc_arr, full_models)
-        best_iteration = i
-    print('---------------------------------------------------')
+numb_of_runs = 100
+@exit_after(28800)
+def run_evo():
+
+    best_acc = -1
+    evolution = Evolution(numb_of_indiv=4)
+    models = evolution.initialize()
+    val_acc_arr = train_models(evolution.individuals, 1, first_run= True)
+    full_models = models[:]
+    print(val_acc_arr)
+    for i in range(numb_of_runs):
+        if max(val_acc_arr) > best_acc:
+            best_acc = max(val_acc_arr)
+            best_model = get_best_model(val_acc_arr, full_models)
+            best_iteration = i
+        print('---------------------------------------------------')
+        print(f'Best model so far:')
+        print_model(best_model[0], best_model[1], best_model[2], best_model[3], best_model[4],best_model[5], best_model[6],
+                    best_model[7], best_model[8], best_model[9])
+        print(f'best_val_acc = {round(best_acc, 4)}')
+        print(f'best model accomplished on iteration number {best_iteration}')
+        print('---------------------------------------------------')
+        print(f'training for {i+2}th time')
+        models, full_models= evolution.run_evolution(val_acc_arr)
+        indexes = evolution.choose_n_val(val_acc_arr)
+        two_best_val = list(itemgetter(*indexes)(val_acc_arr))
+        val_acc_arr_temp = train_models(models, i+2, first_run= False, prev_two_val_acc=sorted(val_acc_arr[-2:]))
+        val_acc_arr = two_best_val + val_acc_arr_temp
+        print(val_acc_arr)
+        print(full_models)
+        print(models)
+        end = time.time()
+        print(f'Total elapsed time {end-start}\n')
+        print('Execution time:', time.strftime("%H:%M:%S", time.gmtime(end-start)))
     print(f'Best model so far:')
     print_model(best_model[0], best_model[1], best_model[2], best_model[3], best_model[4],best_model[5], best_model[6],
-                best_model[7], best_model[8], best_model[9])
+                    best_model[7], best_model[8], best_model[9])
     print(f'best_val_acc = {round(best_acc, 4)}')
-    print(f'best model accomplished on iteration number {best_iteration}')
-    print('---------------------------------------------------')
-    print(f'training for {i+2}th time')
-    models, full_models= evolution.run_evolution(val_acc_arr)
-    indexes = evolution.choose_n_val(val_acc_arr)
-    two_best_val = list(itemgetter(*indexes)(val_acc_arr))
-    val_acc_arr_temp = train_models(models, i+2, first_run= False, prev_two_val_acc=sorted(val_acc_arr[-2:]))
-    val_acc_arr = two_best_val + val_acc_arr_temp
-    print(val_acc_arr)
-    print(full_models)
-    print(models)
-    end = time.time()
-    print(f'Total elapsed time {end-start}\n')
-    print('Execution time:', time.strftime("%H:%M:%S", time.gmtime(end-start)))
-print(f'Best model so far:')
-print_model(best_model[0], best_model[1], best_model[2], best_model[3], best_model[4],best_model[5], best_model[6],
-                best_model[7], best_model[8], best_model[9])
-print(f'best_val_acc = {round(best_acc, 4)}')
 
 
+run_evo()
