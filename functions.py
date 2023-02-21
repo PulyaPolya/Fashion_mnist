@@ -387,3 +387,12 @@ def print_model(conv1, conv2, conv3, dropout1, dropout2, kernel1, kernel2, kerne
           f'\n optimizer =  {optimizer} '
           f'\n learning_rate =  {learning_rate} '
     )
+
+def save_evolution_results(number_of_models, conv1, conv2,conv3, lr, kernel1, kernel2, kernel3, opt, dropout1, dropout2, val_acc, number):
+    if number == 0:
+        header = ['number_of_models', 'conv1', 'conv2', 'conv3', 'learning_rate', 'kernel1', 'kernel2', 'kernel3', 'opt', 'drop1', 'drop2','val_acc']
+    else:
+        header = None
+    df = pd.DataFrame([[number_of_models, conv1, conv2,conv3, lr, kernel1, kernel2, kernel3, opt, dropout1, dropout2,val_acc ]],
+                     index=[number], columns=['number_of_models','conv1', 'conv2', 'conv3', 'learning_rate', 'ker1', 'ker2', 'ker2', 'opt', 'drop1', 'drop2','val_acc'])
+    df.to_csv("results.csv", mode='a', index=True, header=header)

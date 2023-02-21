@@ -80,6 +80,19 @@ class RandomInvert(layers.Layer):
 
 start = time.time()
 tf.random.set_seed(1234)
+# class Logger(object):
+#     def __init__(self):
+#         self.terminal = sys.stdout
+#         self.log = open("log.dat", "a")
+#
+#     def write(self, message):
+#         self.terminal.write(message)
+#         self.log.write(message)
+#
+#     def flush(self):
+#         pass
+#
+# sys.stdout = Logger()
 def define_model(conv1, conv2,conv3, kernel1, kernel2, kernel3, dropout1, dropout2):
     model = tf.keras.models.Sequential([
         RandomInvert(),
@@ -102,12 +115,12 @@ def print_model(conv1, conv2,conv3, kernel1, kernel2, kernel3, dropout1, dropout
           f'\n kernel3 =  {kernel3}'
           f'\n dropout1 =  {dropout1 / 10}'
           f'\n dropout2 =  {dropout2 / 10} '
-          f'\n opt =  {opt} '
           f'\n l_rate =  {l_rate} '
+          f'\n opt =  {opt} '
     )
 
 
-def train_models(models, numb_iteration, first_run= False, prev_two_val_acc = None):
+def train_models(evolution,models, numb_iteration, first_run= False, prev_two_val_acc = None):
     val_acc_arr = []
     for hyper_params in models:
         print('-----------------------------------------------')
@@ -135,6 +148,7 @@ def train_models(models, numb_iteration, first_run= False, prev_two_val_acc = No
                             callbacks = [early_stop],
                             verbose=1
                             )
+        evolution.numb_of_trained_models += 1
         val_acc = max(history.history['val_acc'])
         val_acc_arr.append(val_acc)
     return val_acc_arr
@@ -147,20 +161,21 @@ def get_best_model(val_acc_arr, models):
 
 (x_train, y_train), (x_test, y_test) = fashion_mnist.load_data()
 input_shape = (28, 28, 1)
-x_train, y_train, x_test, y_test = f.edit_data(x_train, y_train,
+x_train, y_train, x_test, y_test = f.edit_data(x_train[:100], y_train[:100],
                                                x_test, y_test)
 
 batch_size = 64
 num_classes = 10
-epochs = 9
-numb_of_runs = 100
+epochs = 1
+numb_of_runs = 2
 @exit_after(28800)
 def run_evo():
 
     best_acc = -1
     evolution = Evolution(numb_of_indiv=4)
     models = evolution.initialize()
-    val_acc_arr = train_models(evolution.individuals, 1, first_run= True)
+    val_acc_arr = train_models(evolution,evolution.individuals, 1, first_run= True)
+
     full_models = models[:]
     print(val_acc_arr)
     for i in range(numb_of_runs):
@@ -174,12 +189,13 @@ def run_evo():
                     best_model[7], best_model[8], best_model[9])
         print(f'best_val_acc = {round(best_acc, 4)}')
         print(f'best model accomplished on iteration number {best_iteration}')
+        print(evolution.numb_of_trained_models)
         print('---------------------------------------------------')
         print(f'training for {i+2}th time')
         models, full_models= evolution.run_evolution(val_acc_arr)
         indexes = evolution.choose_n_val(val_acc_arr)
         two_best_val = list(itemgetter(*indexes)(val_acc_arr))
-        val_acc_arr_temp = train_models(models, i+2, first_run= False, prev_two_val_acc=sorted(val_acc_arr[-2:]))
+        val_acc_arr_temp = train_models(evolution, models, i+2, first_run= False, prev_two_val_acc=sorted(val_acc_arr[-2:]))
         val_acc_arr = two_best_val + val_acc_arr_temp
         print(val_acc_arr)
         print(full_models)
@@ -187,10 +203,28 @@ def run_evo():
         end = time.time()
         print(f'Total elapsed time {end-start}\n')
         print('Execution time:', time.strftime("%H:%M:%S", time.gmtime(end-start)))
+
     print(f'Best model so far:')
     print_model(best_model[0], best_model[1], best_model[2], best_model[3], best_model[4],best_model[5], best_model[6],
                     best_model[7], best_model[8], best_model[9])
     print(f'best_val_acc = {round(best_acc, 4)}')
-
-
+    f.save_evolution_results(number_of_models = evolution.numb_of_trained_models, conv1=best_model[0], conv2=best_model[1], conv3=best_model[2], lr=best_model[9],
+                             kernel1=best_model[3], kernel2=best_model[4], kernel3=best_model[5], opt=best_model[8],
+                             dropout1=best_model[6],dropout2=best_model[7], val_acc=round(best_acc, 4), number=2)
+    # # f = open("demofile2.txt", "a")
+    # # f.write(f'\n Best model so far: conv1 =  {best_model[0]} \n conv2 =  { best_model[1]} '
+    # #         f'\n conv3 =  {best_model[2]}'
+    # #         f'\n kernel1 =  {best_model[3]}'
+    # #         f'\n kernel2 =  {best_model[4]}'
+    # #       f'\n kernel3 =  {best_model[5]}'
+    # #       f'\n dropout1 =  {best_model[6] / 10}'
+    # #       f'\n dropout2 =  {best_model[7] / 10} '
+    # #       f'\n l_rate =  { best_model[9]} '
+    # #         f'\n opt =  {best_model[8]} ')
+    # # f.write(f'\n best_val_acc = {round(best_acc, 4)}\n')
+    # # f.write(f'****************************************** \n')
+    # # f.close()
+f.save_evolution_results(number_of_models = '' ,conv1='40-140', conv2='40-100', conv3='32-80', lr='5--15',
+                         kernel1='3--7', kernel2='3--9', kernel3='3--15', opt='',
+                         dropout1='3--6',dropout2='3--6', val_acc='', number=0)
 run_evo()

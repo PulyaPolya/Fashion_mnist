@@ -8,6 +8,7 @@ class Evolution:
         self.params = []
         self.numb_of_indiv = numb_of_indiv      # max number of models
         self.individuals = []                   # array containing all models
+        self.numb_of_trained_models = 0
 
     def initialize(self):
         for i in range(self.numb_of_indiv):
