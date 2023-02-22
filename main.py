@@ -161,16 +161,28 @@ def get_best_model(val_acc_arr, models):
 
 (x_train, y_train), (x_test, y_test) = fashion_mnist.load_data()
 input_shape = (28, 28, 1)
-x_train, y_train, x_test, y_test = f.edit_data(x_train[:100], y_train[:100],
-                                               x_test, y_test)
-
 batch_size = 64
 num_classes = 10
-epochs = 1
-numb_of_runs = 2
+numb_of_runs = 100
+epochs = 9
+x_train, y_train, x_test, y_test = f.edit_data(x_train, y_train,
+                                               x_test, y_test)
+# print('If you want to debug the project, please enter a key word "debug"')
+# debug = input()
+# if debug == 'debug':
+#     epochs = 1
+#     numb_of_runs = 2
+#     x_train, y_train, x_test, y_test = f.edit_data(x_train[:100], y_train[:100],
+#                                                    x_test, y_test)
+# else:
+#     numb_of_runs = 100
+#     epochs = 9
+#     x_train, y_train, x_test, y_test = f.edit_data(x_train, y_train,
+#                                                    x_test, y_test)
+
 @exit_after(28800)
 def run_evo():
-
+    number = 0
     best_acc = -1
     evolution = Evolution(numb_of_indiv=4)
     models = evolution.initialize()
@@ -188,6 +200,11 @@ def run_evo():
         print_model(best_model[0], best_model[1], best_model[2], best_model[3], best_model[4],best_model[5], best_model[6],
                     best_model[7], best_model[8], best_model[9])
         print(f'best_val_acc = {round(best_acc, 4)}')
+        number += 1
+        f.save_evolution_results(number_of_models=evolution.numb_of_trained_models, conv1=best_model[0],
+                                 conv2=best_model[1], conv3=best_model[2], lr=best_model[9],
+                                 kernel1=best_model[3], kernel2=best_model[4], kernel3=best_model[5], opt=best_model[8],
+                                 dropout1=best_model[6], dropout2=best_model[7], val_acc=round(best_acc, 4), number=number)
         print(f'best model accomplished on iteration number {best_iteration}')
         print(evolution.numb_of_trained_models)
         print('---------------------------------------------------')
@@ -208,9 +225,10 @@ def run_evo():
     print_model(best_model[0], best_model[1], best_model[2], best_model[3], best_model[4],best_model[5], best_model[6],
                     best_model[7], best_model[8], best_model[9])
     print(f'best_val_acc = {round(best_acc, 4)}')
+    number += 1
     f.save_evolution_results(number_of_models = evolution.numb_of_trained_models, conv1=best_model[0], conv2=best_model[1], conv3=best_model[2], lr=best_model[9],
                              kernel1=best_model[3], kernel2=best_model[4], kernel3=best_model[5], opt=best_model[8],
-                             dropout1=best_model[6],dropout2=best_model[7], val_acc=round(best_acc, 4), number=2)
+                             dropout1=best_model[6],dropout2=best_model[7], val_acc=round(best_acc, 4), number=number)
     # # f = open("demofile2.txt", "a")
     # # f.write(f'\n Best model so far: conv1 =  {best_model[0]} \n conv2 =  { best_model[1]} '
     # #         f'\n conv3 =  {best_model[2]}'
