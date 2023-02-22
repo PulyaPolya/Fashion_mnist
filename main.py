@@ -179,7 +179,14 @@ x_train, y_train, x_test, y_test = f.edit_data(x_train, y_train,
 #     epochs = 9
 #     x_train, y_train, x_test, y_test = f.edit_data(x_train, y_train,
 #                                                    x_test, y_test)
-
+print('please enter the number of fold')
+fold_numb = input()
+if fold_numb == '1':
+    x_val = x_train[:12000]
+    x_train = x_train[12000:]
+elif fold_numb == '2':
+    x_val = x_train[12000:24000]
+    x_train = x_train[12000:]
 @exit_after(28800)
 def run_evo():
     number = 0

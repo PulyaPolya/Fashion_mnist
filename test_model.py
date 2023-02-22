@@ -39,20 +39,10 @@ def random_invert_img(x):
       return x
   x_temp = x.numpy()
   x_temp = x_temp.reshape(x_temp.shape[0], 28,28)
-  # x_result = []
-  # for i in range(x_temp.shape[0]):
-  #     sing_ex = f.shift_image(x_temp[i])
-  #     x_result.append(sing_ex)
-  # x_result = np.array(x_result)
-  #x_shifted = f.opposite(x_temp)
   x_shifted = []
   for image in x_temp:
       x_shifted.append(f.shift_image_np(image))
   x_shifted = np.array(x_shifted)
-  #x_shifted= f.shift_batch_not_random(x_temp,epoch_track)
-  #x_shifted = x_temp[:]
-  #f.plot(x_shifted[1], 1, iterable= False)
-  #f.plot( x_train_big.reshape(x_train_big.shape[0], 28,28)[0], 0, iterable  = False)
 
   x_result = x_shifted.reshape(x_temp.shape[0],28,28,1)
   return x_result

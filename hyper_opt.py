@@ -15,8 +15,7 @@ tf.random.set_seed(1234)
 x_train, y_train, x_test, y_test = f.edit_data(x_train, y_train, x_test, y_test)
 size_data = x_train.shape[0]
 batch_size = 64
-num_iter =20000
-epochs =int ((batch_size / size_data) * num_iter)
+epochs =9
 class Epoch_Tracker:
   def __init__(self):
      self.epoch = 0
@@ -53,54 +52,54 @@ class RandomInvert(layers.Layer):
 epoch_track = Epoch_Tracker()
 tf.random.set_seed(92)
 def model_builder(hp):
-  model = keras.Sequential()
-  hp_units1 = hp.Int('conv1', min_value=40, max_value=140, step=1)
-  hp_units2 = hp.Int('conv2', min_value=40, max_value=100, step=1)
-  hp_units3 = hp.Int('conv3', min_value=32, max_value=80, step=1)
-  hp_drop1 = hp.Int('drop1', min_value=3, max_value=7, step=1)
-  hp_drop2 = hp.Int('drop2', min_value=3, max_value=6, step=1)
-  hp_kernel_size1 = hp.Int('kernel_size1', min_value=1, max_value=4, step = 1)
-  hp_kernel_size2 = hp.Int('kernel_size2', min_value=1, max_value=7, step=1)
-  hp_kernel_size3 = hp.Int('kernel_size3', min_value=2, max_value=10, step=1)
+    model = keras.Sequential()
+    hp_units1 = hp.Int('conv1', min_value=40, max_value=140, step=1)
+    hp_units2 = hp.Int('conv2', min_value=40, max_value=100, step=1)
+    hp_units3 = hp.Int('conv3', min_value=32, max_value=80, step=1)
+    hp_drop1 = hp.Int('drop1', min_value=3, max_value=6, step=1)
+    hp_drop2 = hp.Int('drop2', min_value=3, max_value=6, step=1)
+    hp_kernel_size1 = hp.Int('kernel_size1', min_value=3, max_value=7, step=2)
+    hp_kernel_size2 = hp.Int('kernel_size2', min_value=3, max_value=9, step=2)
+    hp_kernel_size3 = hp.Int('kernel_size3', min_value=3, max_value=15, step=2)
 
 
-  model.add(RandomInvert())
-  model.add(keras.layers.Conv2D(filters = hp_units1,  kernel_size=(hp_kernel_size1, hp_kernel_size1), padding='same', activation='relu', input_shape=input_shape))
-  model.add(keras.layers.Conv2D(filters = hp_units2,  kernel_size=(hp_kernel_size2, hp_kernel_size2), padding='same', activation='relu'))
-  model.add(keras.layers.MaxPool2D())
-  model.add(keras.layers.Dropout(hp_drop1/10))
-  model.add(keras.layers.Conv2D(filters = hp_units3,  kernel_size=(hp_kernel_size3, hp_kernel_size3), padding='same', activation='relu'))
-  model.add(keras.layers.Dropout(hp_drop2/10))
-  model.add(keras.layers.Flatten())
-  model.add(keras.layers.Dense(num_classes, activation = 'softmax'))
-  hp_learning_rate = hp.Choice('learning rate', values=list(range(5,15)))
+    model.add(RandomInvert())
+    model.add(keras.layers.Conv2D(filters = hp_units1,  kernel_size=(hp_kernel_size1, hp_kernel_size1), padding='same', activation='relu', input_shape=input_shape))
+    model.add(keras.layers.Conv2D(filters = hp_units2,  kernel_size=(hp_kernel_size2, hp_kernel_size2), padding='same', activation='relu'))
+    model.add(keras.layers.MaxPool2D())
+    model.add(keras.layers.Dropout(hp_drop1/10))
+    model.add(keras.layers.Conv2D(filters = hp_units3,  kernel_size=(hp_kernel_size3, hp_kernel_size3), padding='same', activation='relu'))
+    model.add(keras.layers.Dropout(hp_drop2/10))
+    model.add(keras.layers.Flatten())
+    model.add(keras.layers.Dense(num_classes, activation = 'softmax'))
+    hp_learning_rate = hp.Choice('learning rate', values=list(range(5,15)))
 
-  hp_optimizer = hp.Choice('optimizer', values=['sgd','rmsprop', 'adam'])
-  if hp_optimizer == 'sgd':
-      optimizer = tf.keras.optimizers.SGD(learning_rate=hp_learning_rate/10000)
-  elif hp_optimizer == 'rmsprop':
-      optimizer = tf.keras.optimizers.RMSprop(learning_rate=hp_learning_rate/10000)
-  elif hp_optimizer == 'adam':
-      optimizer = tf.keras.optimizers.Adam(learning_rate=hp_learning_rate/10000)
+    hp_optimizer = hp.Choice('optimizer', values=['adam', 'nadam', 'rmsprop'])
+    if hp_optimizer == 'adam':
+        optimizer = tf.keras.optimizers.Adam(learning_rate=hp_learning_rate / 10000)
+    elif hp_optimizer == 'nadam':
+        optimizer = tf.keras.optimizers.Nadam(learning_rate=hp_learning_rate / 10000)
+    elif hp_optimizer == 'rmsprop':
+        optimizer = tf.keras.optimizers.RMSprop(learning_rate=hp_learning_rate / 10000)
 
 
-  model.compile(optimizer= optimizer,
+    model.compile(optimizer= optimizer,
                 loss='categorical_crossentropy',
                 metrics=['acc'], run_eagerly=True)
 
-  return model
+    return model
 
-tuner = kt.BayesianOptimization(model_builder,
+tuner = kt.RandomSearch(model_builder,
                      objective='val_acc',
-                     max_trials= 100, #max epochs in the end
-                     directory='bayes111',
-                     project_name='bayes111')
+                     max_trials= 100,
+                     directory='random_search',
+                     project_name='random_search')
 
 
 early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_acc', patience=5, baseline=0.7)
 tuner.search(x_train, y_train, epochs=9, validation_split=0.1, callbacks=[early_stop])
 
-# Get the optimal hyperparame   ters
+# Get the optimal hyperparameters
 best_hps=tuner.get_best_hyperparameters(num_trials=1)[0]
 
 # print(f"""
