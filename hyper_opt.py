@@ -7,6 +7,44 @@ from tensorflow.keras import layers
 
 import keras_tuner as kt
 from tensorflow import keras
+import sys
+import threading
+from time import sleep
+
+try:
+    import thread
+except ImportError:
+    import _thread as thread
+try:
+    range, _print = xrange, print
+    def print(*args, **kwargs):
+        flush = kwargs.pop('flush', False)
+        _print(*args, **kwargs)
+        if flush:
+            kwargs.get('file', sys.stdout).flush()
+except NameError:
+    pass
+def quit_function(fn_name):
+    # print to stderr, unbuffered in Python 2.
+    print('{0} took too long'.format(fn_name), file=sys.stderr)
+    sys.stderr.flush() # Python 3 stderr is likely buffered.
+    thread.interrupt_main() # raises KeyboardInterrupt
+def exit_after(s):
+    '''
+    use as decorator to exit process if
+    function takes longer than s seconds
+    '''
+    def outer(fn):
+        def inner(*args, **kwargs):
+            timer = threading.Timer(s, quit_function, args=[fn.__name__])
+            timer.start()
+            try:
+                result = fn(*args, **kwargs)
+            finally:
+                timer.cancel()
+            return result
+        return inner
+    return outer
 
 num_classes = 10
 input_shape = (28, 28, 1)
@@ -88,20 +126,21 @@ def model_builder(hp):
                 metrics=['acc'], run_eagerly=True)
 
     return model
+@exit_after(28800)
+def run_search():
+    tuner = kt.RandomSearch(model_builder,
+                         objective='val_acc',
+                         max_trials= 100,
+                         directory='random_search',
+                         project_name='random_search')
 
-tuner = kt.RandomSearch(model_builder,
-                     objective='val_acc',
-                     max_trials= 100,
-                     directory='random_search',
-                     project_name='random_search')
 
+    early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_acc', patience=5, baseline=0.7)
+    tuner.search(x_train, y_train, epochs=9, validation_split=0.1, callbacks=[early_stop])
 
-early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_acc', patience=5, baseline=0.7)
-tuner.search(x_train, y_train, epochs=9, validation_split=0.1, callbacks=[early_stop])
-
-# Get the optimal hyperparameters
-best_hps=tuner.get_best_hyperparameters(num_trials=1)[0]
-
+    # Get the optimal hyperparameters
+    best_hps=tuner.get_best_hyperparameters(num_trials=1)[0]
+run_search()
 # print(f"""
 # The hyperparameter search is complete. The optimal number of units in the first layer is conv1
 # {best_hps.get('conv1')} and  conv2  {best_hps.get('conv2')} and
