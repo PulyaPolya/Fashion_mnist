@@ -388,11 +388,12 @@ def print_model(conv1, conv2, conv3, dropout1, dropout2, kernel1, kernel2, kerne
           f'\n learning_rate =  {learning_rate} '
     )
 
-def save_evolution_results(number_of_models, conv1, conv2,conv3, lr, kernel1, kernel2, kernel3, opt, dropout1, dropout2, val_acc, number):
+def save_evolution_results(number_of_models, conv1, conv2,conv3, lr, kernel1, kernel2, kernel3, opt, dropout1, dropout2, val_acc, number, fold_numb):
     if number == 0:
-        header = ['number_of_models', 'conv1', 'conv2', 'conv3', 'learning_rate', 'kernel1', 'kernel2', 'kernel3', 'opt', 'drop1', 'drop2','val_acc']
+        header = ['number_of_models', 'conv1', 'conv2', 'conv3', 'learning_rate', 'kernel1', 'kernel2', 'kernel3', 'opt', 'drop1', 'drop2','val_acc', 'fold_numb']
     else:
         header = None
-    df = pd.DataFrame([[number_of_models, conv1, conv2,conv3, lr, kernel1, kernel2, kernel3, opt, dropout1, dropout2,val_acc ]],
-                     index=[number], columns=['number_of_models','conv1', 'conv2', 'conv3', 'learning_rate', 'ker1', 'ker2', 'ker2', 'opt', 'drop1', 'drop2','val_acc'])
+    df = pd.DataFrame([[number_of_models, conv1, conv2,conv3, lr, kernel1, kernel2, kernel3, opt, dropout1, dropout2,val_acc,fold_numb ]],
+                     index=[number], columns=['number_of_models','conv1', 'conv2', 'conv3', 'learning_rate', 'ker1',
+                                              'ker2', 'ker2', 'opt', 'drop1', 'drop2','val_acc','fold_numb' ])
     df.to_csv("results.csv", mode='a', index=True, header=header)

@@ -7,6 +7,7 @@ import functions as f
 from operator import itemgetter
 import time
 from tensorflow.keras import layers
+from keras.callbacks import ModelCheckpoint, TensorBoard
 
 import sys
 import threading
@@ -141,11 +142,14 @@ def train_models(evolution,models, numb_iteration, first_run= False, prev_two_va
         elif hyper_params[9] == 'adam':
             optimizer = tf.keras.optimizers.Adam(learning_rate=hyper_params[8] / 10000)
         model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['acc'], run_eagerly=True)
+
+        tensorboard = TensorBoard(log_dir='cross-validation/{}'.format(NAME), update_freq='batch', )
         history = model.fit(x_train, y_train,
                             batch_size=batch_size,
                             epochs=epochs,
-                            validation_split=0.1,
-                            callbacks = [early_stop],
+                            validation_data = (x_val,y_val),
+                            #validation_split=0.1,
+                            callbacks = [early_stop, tensorboard],
                             verbose=1
                             )
         evolution.numb_of_trained_models += 1
@@ -172,8 +176,11 @@ x_train, y_train, x_test, y_test = f.edit_data(x_train, y_train,
 # if debug == 'debug':
 #     epochs = 1
 #     numb_of_runs = 2
+#     fold_numb = '1'
 #     x_train, y_train, x_test, y_test = f.edit_data(x_train[:100], y_train[:100],
 #                                                    x_test, y_test)
+#     x_val = x_train[-100:]
+#     y_val = y_train[-100:]
 # else:
 #     numb_of_runs = 100
 #     epochs = 9
@@ -184,9 +191,33 @@ fold_numb = input()
 if fold_numb == '1':
     x_val = x_train[:12000]
     x_train = x_train[12000:]
+    y_val = y_train[:12000]
+    y_train = y_train[12000:]
+    NAME = "Evolution_fold1"
 elif fold_numb == '2':
     x_val = x_train[12000:24000]
-    x_train = x_train[12000:]
+    x_train = np.concatenate((x_train[:12000],x_train[24000:] ), axis = 0)
+    y_val = y_train[12000:24000]
+    y_train = np.concatenate((y_train[:12000], y_train[24000:]), axis=0)
+    NAME = "Evolution_fold2"
+elif fold_numb == '3':
+    x_val = x_train[24000:36000]
+    x_train = np.concatenate((x_train[:24000], x_train[36000:]), axis=0)
+    y_val = y_train[24000:36000]
+    y_train = np.concatenate((y_train[:24000], y_train[36000:]), axis=0)
+    NAME = "Evolution_fold3"
+elif fold_numb == '4':
+    x_val = x_train[36000:48000]
+    x_train = np.concatenate((x_train[:36000], x_train[48000:]), axis=0)
+    y_val = y_train[36000:48000]
+    y_train = np.concatenate((y_train[:36000], y_train[48000:]), axis=0)
+    NAME = "Evolution_fold4"
+elif fold_numb == '5':
+    x_val = x_train[48000:60000]
+    x_train = x_train[:48000]
+    y_val = y_train[48000:60000]
+    y_train = y_train[:48000]
+    NAME = "Evolution_fold5"
 @exit_after(28800)
 def run_evo():
     number = 0
@@ -211,7 +242,7 @@ def run_evo():
         f.save_evolution_results(number_of_models=evolution.numb_of_trained_models, conv1=best_model[0],
                                  conv2=best_model[1], conv3=best_model[2], lr=best_model[9],
                                  kernel1=best_model[3], kernel2=best_model[4], kernel3=best_model[5], opt=best_model[8],
-                                 dropout1=best_model[6], dropout2=best_model[7], val_acc=round(best_acc, 4), number=number)
+                                 dropout1=best_model[6], dropout2=best_model[7], val_acc=round(best_acc, 4), number=number, fold_numb=fold_numb)
         print(f'best model accomplished on iteration number {best_iteration}')
         print(evolution.numb_of_trained_models)
         print('---------------------------------------------------')
@@ -235,21 +266,8 @@ def run_evo():
     number += 1
     f.save_evolution_results(number_of_models = evolution.numb_of_trained_models, conv1=best_model[0], conv2=best_model[1], conv3=best_model[2], lr=best_model[9],
                              kernel1=best_model[3], kernel2=best_model[4], kernel3=best_model[5], opt=best_model[8],
-                             dropout1=best_model[6],dropout2=best_model[7], val_acc=round(best_acc, 4), number=number)
-    # # f = open("demofile2.txt", "a")
-    # # f.write(f'\n Best model so far: conv1 =  {best_model[0]} \n conv2 =  { best_model[1]} '
-    # #         f'\n conv3 =  {best_model[2]}'
-    # #         f'\n kernel1 =  {best_model[3]}'
-    # #         f'\n kernel2 =  {best_model[4]}'
-    # #       f'\n kernel3 =  {best_model[5]}'
-    # #       f'\n dropout1 =  {best_model[6] / 10}'
-    # #       f'\n dropout2 =  {best_model[7] / 10} '
-    # #       f'\n l_rate =  { best_model[9]} '
-    # #         f'\n opt =  {best_model[8]} ')
-    # # f.write(f'\n best_val_acc = {round(best_acc, 4)}\n')
-    # # f.write(f'****************************************** \n')
-    # # f.close()
+                             dropout1=best_model[6],dropout2=best_model[7], val_acc=round(best_acc, 4), number=number, fold_numb= fold_numb)
 f.save_evolution_results(number_of_models = '' ,conv1='40-140', conv2='40-100', conv3='32-80', lr='5--15',
                          kernel1='3--7', kernel2='3--9', kernel3='3--15', opt='',
-                         dropout1='3--6',dropout2='3--6', val_acc='', number=0)
+                         dropout1='3--6',dropout2='3--6', val_acc='', number=0,fold_numb= 0)
 run_evo()
