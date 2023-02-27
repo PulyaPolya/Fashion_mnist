@@ -79,7 +79,7 @@ class RandomInvert(layers.Layer):
   def call(self, x):
     return random_invert_img(x)
 
-start = time.time()
+
 tf.random.set_seed(1234)
 # class Logger(object):
 #     def __init__(self):
@@ -162,65 +162,43 @@ def get_best_model(val_acc_arr, models):
     best_model = models[index_best_model].copy()
     return best_model
 
+# x_train, y_train, x_test, y_test = f.edit_data(x_train, y_train,
+#                                                x_test, y_test)
+# print('please enter the number of fold')
+# fold_numb = input()
+# if fold_numb == '1':
+#     x_val = x_train[:12000]
+#     x_train = x_train[12000:]
+#     y_val = y_train[:12000]
+#     y_train = y_train[12000:]
+#     NAME = "Evolution_fold1"
+# elif fold_numb == '2':
+#     x_val = x_train[12000:24000]
+#     x_train = np.concatenate((x_train[:12000],x_train[24000:] ), axis = 0)
+#     y_val = y_train[12000:24000]
+#     y_train = np.concatenate((y_train[:12000], y_train[24000:]), axis=0)
+#     NAME = "Evolution_fold2"
+# elif fold_numb == '3':
+#     x_val = x_train[24000:36000]
+#     x_train = np.concatenate((x_train[:24000], x_train[36000:]), axis=0)
+#     y_val = y_train[24000:36000]
+#     y_train = np.concatenate((y_train[:24000], y_train[36000:]), axis=0)
+#     NAME = "Evolution_fold3"
+# elif fold_numb == '4':
+#     x_val = x_train[36000:48000]
+#     x_train = np.concatenate((x_train[:36000], x_train[48000:]), axis=0)
+#     y_val = y_train[36000:48000]
+#     y_train = np.concatenate((y_train[:36000], y_train[48000:]), axis=0)
+#     NAME = "Evolution_fold4"
+# elif fold_numb == '5':
+#     x_val = x_train[48000:60000]
+#     x_train = x_train[:48000]
+#     y_val = y_train[48000:60000]
+#     y_train = y_train[:48000]
+#     NAME = "Evolution_fold5"
 
-(x_train, y_train), (x_test, y_test) = fashion_mnist.load_data()
-input_shape = (28, 28, 1)
-batch_size = 64
-num_classes = 10
-numb_of_runs = 100
-epochs = 9
-x_train, y_train, x_test, y_test = f.edit_data(x_train, y_train,
-                                               x_test, y_test)
-# print('If you want to debug the project, please enter a key word "debug"')
-# debug = input()
-# if debug == 'debug':
-#     epochs = 1
-#     numb_of_runs = 2
-#     fold_numb = '1'
-#     x_train, y_train, x_test, y_test = f.edit_data(x_train[:100], y_train[:100],
-#                                                    x_test, y_test)
-#     x_val = x_train[-100:]
-#     y_val = y_train[-100:]
-# else:
-#     numb_of_runs = 100
-#     epochs = 9
-#     x_train, y_train, x_test, y_test = f.edit_data(x_train, y_train,
-#                                                    x_test, y_test)
-print('please enter the number of fold')
-fold_numb = input()
-if fold_numb == '1':
-    x_val = x_train[:12000]
-    x_train = x_train[12000:]
-    y_val = y_train[:12000]
-    y_train = y_train[12000:]
-    NAME = "Evolution_fold1"
-elif fold_numb == '2':
-    x_val = x_train[12000:24000]
-    x_train = np.concatenate((x_train[:12000],x_train[24000:] ), axis = 0)
-    y_val = y_train[12000:24000]
-    y_train = np.concatenate((y_train[:12000], y_train[24000:]), axis=0)
-    NAME = "Evolution_fold2"
-elif fold_numb == '3':
-    x_val = x_train[24000:36000]
-    x_train = np.concatenate((x_train[:24000], x_train[36000:]), axis=0)
-    y_val = y_train[24000:36000]
-    y_train = np.concatenate((y_train[:24000], y_train[36000:]), axis=0)
-    NAME = "Evolution_fold3"
-elif fold_numb == '4':
-    x_val = x_train[36000:48000]
-    x_train = np.concatenate((x_train[:36000], x_train[48000:]), axis=0)
-    y_val = y_train[36000:48000]
-    y_train = np.concatenate((y_train[:36000], y_train[48000:]), axis=0)
-    NAME = "Evolution_fold4"
-elif fold_numb == '5':
-    x_val = x_train[48000:60000]
-    x_train = x_train[:48000]
-    y_val = y_train[48000:60000]
-    y_train = y_train[:48000]
-    NAME = "Evolution_fold5"
-@exit_after(28800)
 def run_evo():
-    number = 0
+    start = time.time()
     best_acc = -1
     evolution = Evolution(numb_of_indiv=4)
     models = evolution.initialize()
@@ -238,11 +216,12 @@ def run_evo():
         print_model(best_model[0], best_model[1], best_model[2], best_model[3], best_model[4],best_model[5], best_model[6],
                     best_model[7], best_model[8], best_model[9])
         print(f'best_val_acc = {round(best_acc, 4)}')
-        number += 1
-        f.save_evolution_results(number_of_models=evolution.numb_of_trained_models, conv1=best_model[0],
-                                 conv2=best_model[1], conv3=best_model[2], lr=best_model[9],
-                                 kernel1=best_model[3], kernel2=best_model[4], kernel3=best_model[5], opt=best_model[8],
-                                 dropout1=best_model[6], dropout2=best_model[7], val_acc=round(best_acc, 4), number=number, fold_numb=fold_numb)
+        #global number
+        #number += 1
+        # f.save_evolution_results(number_of_models=evolution.numb_of_trained_models, conv1=best_model[0],
+        #                          conv2=best_model[1], conv3=best_model[2], lr=best_model[8],
+        #                          kernel1=best_model[3], kernel2=best_model[4], kernel3=best_model[5], opt=best_model[9],
+        #                          dropout1=best_model[6], dropout2=best_model[7], val_acc=round(best_acc, 4), number=number, fold_numb=fold_numb)
         print(f'best model accomplished on iteration number {best_iteration}')
         print(evolution.numb_of_trained_models)
         print('---------------------------------------------------')
@@ -256,18 +235,93 @@ def run_evo():
         print(full_models)
         print(models)
         end = time.time()
-        print(f'Total elapsed time {end-start}\n')
+        elapsed_time = end-start
+        print(f'Total elapsed time {elapsed_time}\n')
         print('Execution time:', time.strftime("%H:%M:%S", time.gmtime(end-start)))
+        global total_time
+        if elapsed_time > total_time:
+            break
 
     print(f'Best model so far:')
     print_model(best_model[0], best_model[1], best_model[2], best_model[3], best_model[4],best_model[5], best_model[6],
                     best_model[7], best_model[8], best_model[9])
     print(f'best_val_acc = {round(best_acc, 4)}')
+    global number
     number += 1
-    f.save_evolution_results(number_of_models = evolution.numb_of_trained_models, conv1=best_model[0], conv2=best_model[1], conv3=best_model[2], lr=best_model[9],
-                             kernel1=best_model[3], kernel2=best_model[4], kernel3=best_model[5], opt=best_model[8],
-                             dropout1=best_model[6],dropout2=best_model[7], val_acc=round(best_acc, 4), number=number, fold_numb= fold_numb)
+    f.save_evolution_results(number_of_models = evolution.numb_of_trained_models, conv1=best_model[0], conv2=best_model[1], conv3=best_model[2], lr=best_model[8],
+                             kernel1=best_model[3], kernel2=best_model[4], kernel3=best_model[5], opt=best_model[9],
+                             dropout1=best_model[6],dropout2=best_model[7], val_acc=round(best_acc, 4),
+                             number=number, fold_numb= fold_numb, time = elapsed_time/3600)
 f.save_evolution_results(number_of_models = '' ,conv1='40-140', conv2='40-100', conv3='32-80', lr='5--15',
                          kernel1='3--7', kernel2='3--9', kernel3='3--15', opt='',
-                         dropout1='3--6',dropout2='3--6', val_acc='', number=0,fold_numb= 0)
-run_evo()
+                         dropout1='3--6',dropout2='3--6', val_acc='', number=0,fold_numb=0, time = 0)
+# run_evo()
+
+# for fold_numb in folds_numb:
+#     debug = 'debug'
+#     if debug == 'debug':
+#         epochs = 1
+#         numb_of_runs = 2
+#
+#         x_val = x_train[-100:]
+#         y_val = y_train[-100:]
+#         x_train = x_train[:100]
+#         y_train = y_train[:100]
+#         NAME = "Evolution_fold" + fold_numb
+#         print(f'\n training for the fold number {fold_numb} \n')
+#         run_evo()
+#     else:
+#         numb_of_runs = 100
+#         epochs = 9
+(x_train, y_train), (x_test, y_test) = fashion_mnist.load_data()
+input_shape = (28, 28, 1)
+batch_size = 64
+num_classes = 10
+numb_of_runs = 100
+epochs = 9
+number = 0
+total_time = 5*60*60 # whole time for running each fold
+folds_numbers = ['1', '2', '3', '4', '5']
+x_train, y_train, x_test, y_test = f.edit_data(x_train, y_train,
+                                                       x_test, y_test)
+for fold_numb in folds_numbers:
+    if fold_numb == '1':
+        x_val = x_train[:12000]
+        x_train = x_train[12000:]
+        y_val = y_train[:12000]
+        y_train = y_train[12000:]
+        NAME = "Evolution_fold1"
+        print(f'\n training for the fold number {fold_numb} \n')
+        run_evo()
+    elif fold_numb == '2':
+        x_val = x_train[12000:24000]
+        x_train = np.concatenate((x_train[:12000],x_train[24000:] ), axis = 0)
+        y_val = y_train[12000:24000]
+        y_train = np.concatenate((y_train[:12000], y_train[24000:]), axis=0)
+        NAME = "Evolution_fold2"
+        print(f'\n training for the fold number {fold_numb} \n')
+        run_evo()
+    elif fold_numb == '3':
+        x_val = x_train[24000:36000]
+        x_train = np.concatenate((x_train[:24000], x_train[36000:]), axis=0)
+        y_val = y_train[24000:36000]
+        y_train = np.concatenate((y_train[:24000], y_train[36000:]), axis=0)
+        NAME = "Evolution_fold3"
+        print(f'\n training for the fold number {fold_numb} \n')
+        run_evo()
+    elif fold_numb == '4':
+        x_val = x_train[36000:48000]
+        x_train = np.concatenate((x_train[:36000], x_train[48000:]), axis=0)
+        y_val = y_train[36000:48000]
+        y_train = np.concatenate((y_train[:36000], y_train[48000:]), axis=0)
+        NAME = "Evolution_fold4"
+        print(f'\n training for the fold number {fold_numb} \n')
+        run_evo()
+    elif fold_numb == '5':
+        x_val = x_train[48000:60000]
+        x_train = x_train[:48000]
+        y_val = y_train[48000:60000]
+        y_train = y_train[:48000]
+        NAME = "Evolution_fold5"
+        print(f'\n training for the fold number {fold_numb} \n')
+        run_evo()
