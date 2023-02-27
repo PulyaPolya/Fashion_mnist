@@ -8,7 +8,7 @@
 pip install -r requirements.txt
 ```
 ## Running Evolution
-- run main.py
+- run Evolution_main.py
 ## Running Random Search
 - run hyper_opt.py
 
