@@ -389,7 +389,7 @@ def print_model(conv1, conv2, conv3, dropout1, dropout2, kernel1, kernel2, kerne
     )
 
 def save_evolution_results(number_of_models, conv1, conv2,conv3, lr, kernel1,
-                           kernel2, kernel3, opt, dropout1, dropout2, val_acc, number, fold_numb, time):
+                           kernel2, kernel3, opt, dropout1, dropout2, val_acc, number, fold_numb, time, file_name = "results.csv"):
     if number == 0:
         header = ['number_of_models', 'conv1', 'conv2', 'conv3', 'learning_rate', 'kernel1', 'kernel2', 'kernel3', 'opt',
                   'drop1', 'drop2','val_acc', 'fold_numb', 'elapsed_time']
@@ -398,4 +398,4 @@ def save_evolution_results(number_of_models, conv1, conv2,conv3, lr, kernel1,
     df = pd.DataFrame([[number_of_models, conv1, conv2,conv3, lr, kernel1, kernel2, kernel3, opt, dropout1, dropout2,val_acc,fold_numb, time ]],
                      index=[number], columns=['number_of_models','conv1', 'conv2', 'conv3', 'learning_rate', 'ker1',
                                               'ker2', 'ker2', 'opt', 'drop1', 'drop2','val_acc','fold_numb', 'elapsed_time' ])
-    df.to_csv("results.csv", mode='a', index=True, header=header)
+    df.to_csv(file_name, mode='a', index=True, header=header)
