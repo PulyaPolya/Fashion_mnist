@@ -131,7 +131,7 @@ def train_models(evolution,models, numb_iteration, first_run= False, prev_two_va
                     kernel2=hyper_params[4], kernel3 = hyper_params[5],
                              dropout1=hyper_params[6], dropout2=hyper_params[7], l_rate=hyper_params[8], opt= hyper_params[9])
 
-        early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_acc', patience=5, baseline=0.7)
+        # early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_acc', patience=5, baseline=0.7)
         model = define_model(conv1=hyper_params[0], conv2=hyper_params[1], conv3=hyper_params[2],
                              kernel1=hyper_params[3],kernel2=hyper_params[4], kernel3=hyper_params[5],
                              dropout1=hyper_params[6], dropout2=hyper_params[7])
@@ -149,7 +149,7 @@ def train_models(evolution,models, numb_iteration, first_run= False, prev_two_va
                             epochs=epochs,
                             validation_data = (x_val,y_val),
                             #validation_split=0.1,
-                            callbacks = [early_stop, tensorboard],
+                            callbacks = [tensorboard],
                             verbose=1
                             )
         evolution.numb_of_trained_models += 1
@@ -278,7 +278,7 @@ input_shape = (28, 28, 1)
 batch_size = 64
 num_classes = 10
 numb_of_runs = 100
-epochs = 9
+epochs = 10
 number = 0
 total_time = 5*60*60 - 20*60 # whole time for running each fold
 folds_numbers = ['1', '2', '3', '4', '5']
