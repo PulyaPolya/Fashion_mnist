@@ -121,7 +121,7 @@ def print_model(conv1, conv2,conv3, kernel1, kernel2, kernel3, dropout1, dropout
     )
 
 
-def train_models(evolution,models, numb_iteration, first_run= False, prev_two_val_acc = None):
+def train_models(evolution,models, numb_iteration, x_train, y_train, x_val, y_val):
     val_acc_arr = []
     for hyper_params in models:
         print('-----------------------------------------------')
@@ -197,12 +197,12 @@ def get_best_model(val_acc_arr, models):
 #     y_train = y_train[:48000]
 #     NAME = "Evolution_fold5"
 
-def run_evo():
+def run_evo(x_train, y_train, x_val, y_val):
     start = time.time()
     best_acc = -1
     evolution = Evolution(numb_of_indiv=4)
     models = evolution.initialize()
-    val_acc_arr = train_models(evolution,evolution.individuals, 1, first_run= True)
+    val_acc_arr = train_models(evolution,evolution.individuals, 1, x_train, y_train, x_val, y_val)
 
     full_models = models[:]
     print(val_acc_arr)
@@ -229,7 +229,7 @@ def run_evo():
         models, full_models= evolution.run_evolution(val_acc_arr)
         indexes = evolution.choose_n_val(val_acc_arr)
         two_best_val = list(itemgetter(*indexes)(val_acc_arr))
-        val_acc_arr_temp = train_models(evolution, models, i+2, first_run= False, prev_two_val_acc=sorted(val_acc_arr[-2:]))
+        val_acc_arr_temp = train_models(evolution, models, i+2, x_train, y_train, x_val, y_val)
         val_acc_arr = two_best_val + val_acc_arr_temp
         print(val_acc_arr)
         print(full_models)
@@ -323,9 +323,9 @@ for fold_numb in folds_numbers:
         print(f'\n training for the fold number {fold_numb} \n')
     print(f'x_train shape is {x_train.shape}')
     print(f'y_train shape is {y_train.shape}')
-    print(f'x_van shape is {x_val.shape}')
+    print(f'x_val shape is {x_val.shape}')
     print(f'y_val shape is {y_val.shape}')
-    run_evo()
+    run_evo(x_train, y_train, x_val, y_val)
     # epochs = 1
     # numb_of_runs = 2
     #
