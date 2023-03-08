@@ -273,7 +273,7 @@ f.save_evolution_results(number_of_models = '' ,conv1='40-140', conv2='40-100', 
 #     else:
 #         numb_of_runs = 100
 #         epochs = 9
-(x_train, y_train), (x_test, y_test) = fashion_mnist.load_data()
+(x_train_orig, y_train_orig), (x_test_orig, y_test_orig) = fashion_mnist.load_data()
 input_shape = (28, 28, 1)
 batch_size = 64
 num_classes = 10
@@ -282,50 +282,50 @@ epochs = 10
 number = 0
 total_time = 5*60*60 - 20*60 # whole time for running each fold
 folds_numbers = ['1', '2', '3', '4', '5']
-x_train, y_train, x_test, y_test = f.edit_data(x_train, y_train,
-                                                       x_test, y_test)
+x_train_orig, y_train_orig, x_test_orig, y_test_orig = f.edit_data(x_train_orig, y_train_orig,
+                                                       x_test_orig, y_test_orig)
 for fold_numb in folds_numbers:
     if fold_numb == '1':
-        x_val = x_train[:12000]
-        x_train = x_train[12000:]
-        y_val = y_train[:12000]
-        y_train = y_train[12000:]
+        x_val = x_train_orig[:12000]
+        x_train = x_train_orig[12000:]
+        y_val = y_train_orig[:12000]
+        y_train = y_train_orig[12000:]
         NAME = "Evolution_fold1"
         print(f'\n training for the fold number {fold_numb} \n')
     elif fold_numb == '2':
-        x_val = x_train[12000:24000]
-        x_train = np.concatenate((x_train[:12000],x_train[24000:] ), axis = 0)
-        y_val = y_train[12000:24000]
-        y_train = np.concatenate((y_train[:12000], y_train[24000:]), axis=0)
+        x_val = x_train_orig[12000:24000]
+        x_train = np.concatenate((x_train_orig[:12000],x_train_orig[24000:] ), axis = 0)
+        y_val = y_train_orig[12000:24000]
+        y_train = np.concatenate((y_train_orig[:12000],y_train_orig[24000:]), axis=0)
         NAME = "Evolution_fold2"
         print(f'\n training for the fold number {fold_numb} \n')
     elif fold_numb == '3':
-        x_val = x_train[24000:36000]
-        x_train = np.concatenate((x_train[:24000], x_train[36000:]), axis=0)
-        y_val = y_train[24000:36000]
-        y_train = np.concatenate((y_train[:24000], y_train[36000:]), axis=0)
+        x_val = x_train_orig[24000:36000]
+        x_train = np.concatenate((x_train_orig[:24000], x_train_orig[36000:]), axis=0)
+        y_val = y_train_orig[24000:36000]
+        y_train = np.concatenate((y_train_orig[:24000], y_train_orig[36000:]), axis=0)
         NAME = "Evolution_fold3"
         print(f'\n training for the fold number {fold_numb} \n')
     elif fold_numb == '4':
-        x_val = x_train[36000:48000]
-        x_train = np.concatenate((x_train[:36000], x_train[48000:]), axis=0)
-        y_val = y_train[36000:48000]
-        y_train = np.concatenate((y_train[:36000], y_train[48000:]), axis=0)
+        x_val = x_train_orig[36000:48000]
+        x_train = np.concatenate((x_train_orig[:36000], x_train_orig[48000:]), axis=0)
+        y_val = y_train_orig[36000:48000]
+        y_train = np.concatenate((y_train_orig[:36000], y_train_orig[48000:]), axis=0)
         NAME = "Evolution_fold4"
         print(f'\n training for the fold number {fold_numb} \n')
 
     elif fold_numb == '5':
-        x_val = x_train[48000:60000]
-        x_train = x_train[:48000]
-        y_val = y_train[48000:60000]
-        y_train = y_train[:48000]
+        x_val = x_train_orig[48000:60000]
+        x_train = x_train_orig[:48000]
+        y_val = y_train_orig[48000:60000]
+        y_train = y_train_orig[:48000]
         NAME = "Evolution_fold5"
         print(f'\n training for the fold number {fold_numb} \n')
     print(f'x_train shape is {x_train.shape}')
     print(f'y_train shape is {y_train.shape}')
     print(f'x_val shape is {x_val.shape}')
     print(f'y_val shape is {y_val.shape}')
-    run_evo(x_train, y_train, x_val, y_val)
+    #run_evo(x_train, y_train, x_val, y_val)
     # epochs = 1
     # numb_of_runs = 2
     #
