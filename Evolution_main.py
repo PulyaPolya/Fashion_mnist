@@ -325,7 +325,7 @@ for fold_numb in folds_numbers:
     print(f'y_train shape is {y_train.shape}')
     print(f'x_val shape is {x_val.shape}')
     print(f'y_val shape is {y_val.shape}')
-    #run_evo(x_train, y_train, x_val, y_val)
+    run_evo(x_train, y_train, x_val, y_val)
     # epochs = 1
     # numb_of_runs = 2
     #
@@ -335,4 +335,3 @@ for fold_numb in folds_numbers:
     # y_train = y_train[:100]
     # NAME = "Evolution_fold" + fold_numb
     # print(f'\n training for the fold number {fold_numb} \n')
-    # run_evo()
