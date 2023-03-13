@@ -4,13 +4,12 @@ import keras
 import functions as f
 import numpy as np
 from tensorflow.keras import layers
-
+import time
 import keras_tuner as kt
 from tensorflow import keras
 
 num_classes = 10
 input_shape = (28, 28, 1)
-tf.random.set_seed(1234)
 (x_train, y_train), (x_test, y_test) = fashion_mnist.load_data()
 # x_train, y_train, x_test, y_test = f.edit_data(x_train, y_train, x_test, y_test)
 size_data = x_train.shape[0]
@@ -90,13 +89,14 @@ def model_builder(hp):
     return model
 #@exit_after(30)
 
-def run_search(NAME,x_train, y_train, x_val, y_val, num_of_runs = 4):
+def run_search(NAME,x_train, y_train, x_val, y_val, num_of_runs):
     for i in range(num_of_runs):
+        start = time.time()
         tuner = kt.Hyperband(model_builder,
                              objective='val_acc',
-                             max_epochs= 10,
+                             max_epochs= 30,
                              hyperband_iterations=1,
-                             directory='hyperband',
+                             directory='Hyperband',
                              project_name=NAME)
 
 
@@ -104,20 +104,22 @@ def run_search(NAME,x_train, y_train, x_val, y_val, num_of_runs = 4):
 
         tuner.search(x = x_train, y = y_train, epochs=10, validation_data=(x_val, y_val))
         best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
+        end = time.time()
+        elapsed_time = end - start
         # print(best_hps)
         f.save_evolution_results(number_of_models='', conv1=best_hps.get('conv1'),
                                  conv2=best_hps.get('conv2'), conv3=best_hps.get('conv3'), lr=best_hps.get('learning rate'),
                                  kernel1=best_hps.get('kernel_size1'), kernel2=best_hps.get('kernel_size2'),
                                  kernel3=best_hps.get('kernel_size3'), opt=best_hps.get('optimizer'),
                                  dropout1=best_hps.get('drop1'), dropout2=best_hps.get('drop2'), val_acc='',
-                                 number=92, fold_numb=fold_numb, time='', file_name='random_results.csv')
+                                 number=92, fold_numb=fold_numb, time= elapsed_time/3600, file_name='hyperband_results.csv')
 
     # Get the optimal hyperparameters
-folds_numbers = ['1']
+folds_numbers = ['1', '2', '3', '4', '5']
 (x_train_orig, y_train_orig), (x_test_orig, y_test_orig) = fashion_mnist.load_data()
 f.save_evolution_results(number_of_models = '' ,conv1='40-140', conv2='40-100', conv3='32-80', lr='5--15',
                          kernel1='3--7', kernel2='3--9', kernel3='3--15', opt='',
-                         dropout1='3--6',dropout2='3--6', val_acc='', number=0,fold_numb=0, time = 0, file_name = "random_results.csv")
+                         dropout1='3--6',dropout2='3--6', val_acc='', number=0,fold_numb=0, time = 0, file_name = 'hyperband_results.csv')
 x_train_orig, y_train_orig, x_test_orig, y_test_orig = f.edit_data(x_train_orig, y_train_orig,
                                                        x_test_orig, y_test_orig)
 for fold_numb in folds_numbers:
@@ -148,4 +150,4 @@ for fold_numb in folds_numbers:
         y_train = y_train_orig[:48000]
     print(f'\n training for the fold number {fold_numb} \n')
     NAME = "Hyperband_fold" + fold_numb
-    run_search(NAME, x_train, y_train, x_val, y_val, num_of_runs=3)
+    run_search(NAME, x_train, y_train, x_val, y_val, num_of_runs=1)
