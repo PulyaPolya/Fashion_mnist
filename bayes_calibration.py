@@ -11,7 +11,6 @@ from tensorflow import keras
 num_classes = 10
 input_shape = (28, 28, 1)
 (x_train, y_train), (x_test, y_test) = fashion_mnist.load_data()
-# x_train, y_train, x_test, y_test = f.edit_data(x_train, y_train, x_test, y_test)
 size_data = x_train.shape[0]
 batch_size = 64
 epochs =15
@@ -89,12 +88,13 @@ def model_builder(hp):
     return model
 #@exit_after(30)
 
-def run_search(NAME,x_train, y_train, x_val, y_val, num_of_runs):
+def run_search(NAME,x_train, y_train, x_val, y_val, number_of_model,num_of_runs=1):
+    print(f'the number of models is {number_of_model}')
     for i in range(num_of_runs):
         start = time.time()
         tuner = kt.BayesianOptimization(model_builder,
                              objective='val_acc',
-                             max_trials= 15,
+                             max_trials= number_of_model,
                              directory='Bayes',
                              project_name=NAME)
 
@@ -106,7 +106,7 @@ def run_search(NAME,x_train, y_train, x_val, y_val, num_of_runs):
         end = time.time()
         elapsed_time = end - start
         # print(best_hps)
-        f.save_evolution_results(number_of_models='', conv1=best_hps.get('conv1'),
+        f.save_evolution_results(number_of_models=number_of_model, conv1=best_hps.get('conv1'),
                                  conv2=best_hps.get('conv2'), conv3=best_hps.get('conv3'), lr=best_hps.get('learning rate'),
                                  kernel1=best_hps.get('kernel_size1'), kernel2=best_hps.get('kernel_size2'),
                                  kernel3=best_hps.get('kernel_size3'), opt=best_hps.get('optimizer'),
@@ -114,7 +114,8 @@ def run_search(NAME,x_train, y_train, x_val, y_val, num_of_runs):
                                  number=92, fold_numb=fold_numb, time= elapsed_time/3600, file_name='bayes_results.csv')
 
     # Get the optimal hyperparameters
-folds_numbers = ['1', '2', '3', '4', '5']
+folds_numbers = ['1', '2', '3', '4']
+numb_of_models = [30, 40, 50, 60]
 (x_train_orig, y_train_orig), (x_test_orig, y_test_orig) = fashion_mnist.load_data()
 f.save_evolution_results(number_of_models = '' ,conv1='40-140', conv2='40-100', conv3='32-80', lr='5--15',
                          kernel1='3--7', kernel2='3--9', kernel3='3--15', opt='',
@@ -122,6 +123,8 @@ f.save_evolution_results(number_of_models = '' ,conv1='40-140', conv2='40-100', 
 x_train_orig, y_train_orig, x_test_orig, y_test_orig = f.edit_data(x_train_orig, y_train_orig,
                                                        x_test_orig, y_test_orig)
 for fold_numb in folds_numbers:
+    i = folds_numbers.index(fold_numb)
+    number_of_model = numb_of_models[i]
     if fold_numb == '1':
         x_val = x_train_orig[:12000]
         x_train = x_train_orig[12000:]
@@ -149,4 +152,4 @@ for fold_numb in folds_numbers:
         y_train = y_train_orig[:48000]
     print(f'\n training for the fold number {fold_numb} \n')
     NAME = "Bayes_fold" + fold_numb
-    run_search(NAME, x_train, y_train, x_val, y_val, num_of_runs=1)
+    run_search(NAME, x_train, y_train, x_val, y_val, number_of_model)
