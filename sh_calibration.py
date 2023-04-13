@@ -124,6 +124,7 @@ x_train_orig, y_train_orig, x_test_orig, y_test_orig = f.edit_data(x_train_orig,
                                                        x_test_orig, y_test_orig)
 for fold_numb in folds_numbers:
     if fold_numb == '1':
+
         # x_val = x_train_orig[:100]
         # x_train = x_train_orig[-100:]
         # y_val = y_train_orig[:100]
@@ -132,31 +133,28 @@ for fold_numb in folds_numbers:
         x_train = x_train_orig[12000:]
         y_val = y_train_orig[:12000]
         y_train = y_train_orig[12000:]
-        max_epochs = 60
     elif fold_numb == '2':
         x_val = x_train_orig[12000:24000]
         x_train = np.concatenate((x_train_orig[:12000],x_train_orig[24000:] ), axis = 0)
         y_val = y_train_orig[12000:24000]
         y_train = np.concatenate((y_train_orig[:12000],y_train_orig[24000:]), axis=0)
-        max_epochs = 70
     elif fold_numb == '3':
         x_val = x_train_orig[24000:36000]
         x_train = np.concatenate((x_train_orig[:24000], x_train_orig[36000:]), axis=0)
         y_val = y_train_orig[24000:36000]
         y_train = np.concatenate((y_train_orig[:24000], y_train_orig[36000:]), axis=0)
-        max_epochs = 80
     elif fold_numb == '4':
         x_val = x_train_orig[36000:48000]
         x_train = np.concatenate((x_train_orig[:36000], x_train_orig[48000:]), axis=0)
         y_val = y_train_orig[36000:48000]
         y_train = np.concatenate((y_train_orig[:36000], y_train_orig[48000:]), axis=0)
-        max_epochs = 90
+
     elif fold_numb == '5':
         x_val = x_train_orig[48000:60000]
         x_train = x_train_orig[:48000]
         y_val = y_train_orig[48000:60000]
         y_train = y_train_orig[:48000]
-        max_epochs = 100
+    max_epochs = 54
     print(f'\n training for the fold number {fold_numb} \n')
     NAME = "SH_fold" + fold_numb
     run_search(NAME, x_train, y_train, x_val, y_val, 1, max_epochs)
