@@ -11,6 +11,7 @@ from tensorflow.keras import layers
 import random
 import matplotlib.pyplot as plt
 from keras.callbacks import LambdaCallback
+import oracle as oracle
 
 
 def edit_data(x_train, y_train, x_test, y_test):
@@ -399,3 +400,24 @@ def save_evolution_results(number_of_models, conv1, conv2,conv3, lr, kernel1,
                      index=[number], columns=['number_of_models','conv1', 'conv2', 'conv3', 'learning_rate', 'ker1',
                                               'ker2', 'ker2', 'opt', 'drop1', 'drop2','val_acc','fold_numb', 'elapsed_time' ])
     df.to_csv(file_name, mode='a', index=True, header=header)
+
+
+def choose_dataset(dataset):
+    if dataset == 'FASHION':
+        (x_train_orig, y_train_orig), (x_test_orig, y_test_orig) = fashion_mnist.load_data()
+    elif dataset == 'ORACLE':
+        x_train_orig, y_train_orig, x_test_orig, y_test_orig = oracle.read_data_sets('oracle-mnist', one_hot=False,
+                                                                                     valid_num=0, dtype=tf.float32)
+    return x_train_orig, y_train_orig,  x_test_orig, y_test_orig
+
+def split_dataset(dataset, x_train_orig, y_train_orig ):
+    if dataset == 'ORACLE':
+        folds_train = np.array_split(x_train_orig[:-2], 5)
+        folds_labels = np.array_split(y_train_orig[:-2], 5)
+        n1 = random.choice([0, 1, 2, 3, 4])
+        folds_train[n1] = np.concatenate((folds_train[n1], np.expand_dims(x_train_orig[-2], axis=0)))
+        folds_labels[n1] = np.concatenate((folds_labels[n1], np.expand_dims(y_train_orig[-2], axis=0)))
+        n2 = random.choice([0, 1, 2, 3, 4])
+        folds_train[n2] = np.concatenate((folds_train[n2], np.expand_dims(x_train_orig[-1], axis=0)))
+        folds_labels[n2] = np.concatenate((folds_labels[n2], np.expand_dims(y_train_orig[-1], axis=0)))
+    return folds_train, folds_labels

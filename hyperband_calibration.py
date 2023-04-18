@@ -7,12 +7,20 @@ from tensorflow.keras import layers
 import time
 import keras_tuner as kt
 from tensorflow import keras
+import oracle as oracle
+import random
 
+# dataset = 'FASHION'
+dataset = 'ORACLE'
 num_classes = 10
 input_shape = (28, 28, 1)
-(x_train, y_train), (x_test, y_test) = fashion_mnist.load_data()
+# if dataset == 'FASHION':
+#     (x_train_orig, y_train_orig), (x_test_orig, y_test_orig) = fashion_mnist.load_data()
+# elif dataset == 'ORACLE':
+#     x_train_orig, y_train_orig, x_test_orig, y_test_orig = oracle.read_data_sets('oracle-mnist', one_hot=False, valid_num=0, dtype=tf.float32)
 # x_train, y_train, x_test, y_test = f.edit_data(x_train, y_train, x_test, y_test)
-size_data = x_train.shape[0]
+x_train_orig, y_train_orig,  x_test_orig, y_test_orig = f.choose_dataset(dataset)
+size_data = x_train_orig.shape[0]
 batch_size = 64
 epochs =10
 class Epoch_Tracker:
@@ -96,7 +104,7 @@ def run_search(NAME,x_train, y_train, x_val, y_val, num_of_runs):
                              objective='val_acc',
                              max_epochs= 30,
                              hyperband_iterations=1,
-                             directory='Hyperband',
+                             directory='oracle/Hyperband',
                              project_name=NAME)
 
 
@@ -112,42 +120,85 @@ def run_search(NAME,x_train, y_train, x_val, y_val, num_of_runs):
                                  kernel1=best_hps.get('kernel_size1'), kernel2=best_hps.get('kernel_size2'),
                                  kernel3=best_hps.get('kernel_size3'), opt=best_hps.get('optimizer'),
                                  dropout1=best_hps.get('drop1'), dropout2=best_hps.get('drop2'), val_acc='',
-                                 number=92, fold_numb=fold_numb, time= elapsed_time/3600, file_name='hyperband_results.csv')
+                                 number=92, fold_numb=fold_numb, time= elapsed_time/3600, file_name='hyperband_oracle_results.csv')
 
     # Get the optimal hyperparameters
 folds_numbers = ['1', '2', '3', '4', '5']
-(x_train_orig, y_train_orig), (x_test_orig, y_test_orig) = fashion_mnist.load_data()
+
 f.save_evolution_results(number_of_models = '' ,conv1='40-140', conv2='40-100', conv3='32-80', lr='5--15',
                          kernel1='3--7', kernel2='3--9', kernel3='3--15', opt='',
-                         dropout1='3--6',dropout2='3--6', val_acc='', number=0,fold_numb=0, time = 0, file_name = 'hyperband_results.csv')
+                         dropout1='3--6',dropout2='3--6', val_acc='', number=0,fold_numb=0, time = 0, file_name = 'hyperband_oracle_results.csv')
 x_train_orig, y_train_orig, x_test_orig, y_test_orig = f.edit_data(x_train_orig, y_train_orig,
                                                        x_test_orig, y_test_orig)
-for fold_numb in folds_numbers:
-    if fold_numb == '1':
-        x_val = x_train_orig[:12000]
-        x_train = x_train_orig[12000:]
-        y_val = y_train_orig[:12000]
-        y_train = y_train_orig[12000:]
-    elif fold_numb == '2':
-        x_val = x_train_orig[12000:24000]
-        x_train = np.concatenate((x_train_orig[:12000],x_train_orig[24000:] ), axis = 0)
-        y_val = y_train_orig[12000:24000]
-        y_train = np.concatenate((y_train_orig[:12000],y_train_orig[24000:]), axis=0)
-    elif fold_numb == '3':
-        x_val = x_train_orig[24000:36000]
-        x_train = np.concatenate((x_train_orig[:24000], x_train_orig[36000:]), axis=0)
-        y_val = y_train_orig[24000:36000]
-        y_train = np.concatenate((y_train_orig[:24000], y_train_orig[36000:]), axis=0)
-    elif fold_numb == '4':
-        x_val = x_train_orig[36000:48000]
-        x_train = np.concatenate((x_train_orig[:36000], x_train_orig[48000:]), axis=0)
-        y_val = y_train_orig[36000:48000]
-        y_train = np.concatenate((y_train_orig[:36000], y_train_orig[48000:]), axis=0)
-    elif fold_numb == '5':
-        x_val = x_train_orig[48000:60000]
-        x_train = x_train_orig[:48000]
-        y_val = y_train_orig[48000:60000]
-        y_train = y_train_orig[:48000]
-    print(f'\n training for the fold number {fold_numb} \n')
-    NAME = "Hyperband_fold" + fold_numb
-    run_search(NAME, x_train, y_train, x_val, y_val, num_of_runs=1)
+
+
+if dataset == 'FASHION':
+    for fold_numb in folds_numbers:
+        if fold_numb == '1':
+            x_val = x_train_orig[:12000]
+            x_train = x_train_orig[12000:]
+            y_val = y_train_orig[:12000]
+            y_train = y_train_orig[12000:]
+        elif fold_numb == '2':
+            x_val = x_train_orig[12000:24000]
+            x_train = np.concatenate((x_train_orig[:12000],x_train_orig[24000:] ), axis = 0)
+            y_val = y_train_orig[12000:24000]
+            y_train = np.concatenate((y_train_orig[:12000],y_train_orig[24000:]), axis=0)
+        elif fold_numb == '3':
+            x_val = x_train_orig[24000:36000]
+            x_train = np.concatenate((x_train_orig[:24000], x_train_orig[36000:]), axis=0)
+            y_val = y_train_orig[24000:36000]
+            y_train = np.concatenate((y_train_orig[:24000], y_train_orig[36000:]), axis=0)
+        elif fold_numb == '4':
+            x_val = x_train_orig[36000:48000]
+            x_train = np.concatenate((x_train_orig[:36000], x_train_orig[48000:]), axis=0)
+            y_val = y_train_orig[36000:48000]
+            y_train = np.concatenate((y_train_orig[:36000], y_train_orig[48000:]), axis=0)
+        elif fold_numb == '5':
+            x_val = x_train_orig[48000:60000]
+            x_train = x_train_orig[:48000]
+            y_val = y_train_orig[48000:60000]
+            y_train = y_train_orig[:48000]
+        print(f'\n training for the fold number {fold_numb} \n')
+        NAME = "Hyperband_fold" + fold_numb
+        run_search(NAME, x_train, y_train, x_val, y_val, num_of_runs=1)
+
+elif dataset == 'ORACLE':
+    folds_train, folds_labels = f.split_dataset(dataset, x_train_orig, y_train_orig)
+    # folds_train = np.array_split(x_train_orig[:-2], 5)
+    # folds_labels = np.array_split(y_train_orig[:-2], 5)
+    # n1 = random.choice([0,1,2,3,4])
+    # folds_train[n1]=np.concatenate((folds_train[n1], np.expand_dims(x_train_orig[-2], axis=0)) )
+    # folds_labels[n1] = np.concatenate((folds_labels[n1], np.expand_dims(y_train_orig[-2], axis=0)) )
+    # n2 = random.choice([0,1,2,3,4])
+    # folds_train[n2] = np.concatenate((folds_train[n2], np.expand_dims(x_train_orig[-1], axis=0)))
+    # folds_labels[n2] = np.concatenate((folds_labels[n2], np.expand_dims(y_train_orig[-1], axis=0)) )
+    for fold_numb in folds_numbers:
+        if fold_numb == '1':
+            x_train = np.concatenate((folds_train[1], folds_train[2], folds_train[3], folds_train[4]))
+            y_train = np.concatenate((folds_labels[1],folds_labels[2], folds_labels[3], folds_labels[4]))
+            x_val = folds_train[0]
+            y_val = folds_labels[0]
+        elif fold_numb == '2':
+            x_train = np.concatenate((folds_train[0], folds_train[2], folds_train[3], folds_train[4]))
+            y_train = np.concatenate((folds_labels[0],folds_labels[2], folds_labels[3], folds_labels[4]))
+            x_val = folds_train[1]
+            y_val = folds_labels[1]
+        elif fold_numb == '3':
+            x_train = np.concatenate((folds_train[0], folds_train[1], folds_train[3], folds_train[4]))
+            y_train = np.concatenate((folds_labels[0],folds_labels[1], folds_labels[3], folds_labels[4]))
+            x_val = folds_train[2]
+            y_val = folds_labels[2]
+        elif fold_numb == '4':
+            x_train = np.concatenate((folds_train[0], folds_train[1], folds_train[2], folds_train[4]))
+            y_train = np.concatenate((folds_labels[0],folds_labels[1], folds_labels[2], folds_labels[4]))
+            x_val = folds_train[3]
+            y_val = folds_labels[3]
+        elif fold_numb == '5':
+            x_train = np.concatenate((folds_train[0], folds_train[1], folds_train[2], folds_train[3]))
+            y_train = np.concatenate((folds_labels[0],folds_labels[1], folds_labels[2], folds_labels[3]))
+            x_val = folds_train[4]
+            y_val = folds_labels[4]
+        print(f'\n training for the fold number {fold_numb} \n')
+        NAME = "Hyperband_fold" + fold_numb
+        run_search(NAME, x_train, y_train, x_val, y_val, num_of_runs=1)
