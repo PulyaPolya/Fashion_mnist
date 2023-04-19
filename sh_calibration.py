@@ -118,8 +118,8 @@ def run_search(NAME,x_train, y_train, x_val, y_val, num_of_runs, max_epochs):
                                  number=92, fold_numb=fold_numb, time= elapsed_time/3600, file_name='sh_results.csv')
 
     # Get the optimal hyperparameters
-# folds_numbers = ['1', '2', '3', '4', '5']
-folds_numbers = ['1']
+folds_numbers = ['1', '2', '3', '4', '5']
+# folds_numbers = ['1']
 f.save_evolution_results(number_of_models = '' ,conv1='40-140', conv2='40-100', conv3='32-80', lr='5--15',
                          kernel1='3--7', kernel2='3--9', kernel3='3--15', opt='',
                          dropout1='3--6',dropout2='3--6', val_acc='', number=0,fold_numb=0, time = 0, file_name = 'sh_results.csv')
@@ -190,5 +190,5 @@ elif dataset == 'ORACLE':
             y_val = folds_labels[4]
             max_epochs = 92
         print(f'\n training for the fold number {fold_numb} \n')
-        NAME = "Hyperband_fold" + fold_numb
+        NAME = "SH_fold" + fold_numb
         run_search(NAME, x_train, y_train, x_val, y_val, 1, max_epochs)
