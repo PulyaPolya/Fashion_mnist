@@ -164,31 +164,31 @@ elif dataset == 'ORACLE':
             y_train = np.concatenate((folds_labels[1],folds_labels[2], folds_labels[3], folds_labels[4]))
             x_val = folds_train[0]
             y_val = folds_labels[0]
-            max_epochs = 70
+            max_epochs = 92
         elif fold_numb == '2':
             x_train = np.concatenate((folds_train[0], folds_train[2], folds_train[3], folds_train[4]))
             y_train = np.concatenate((folds_labels[0],folds_labels[2], folds_labels[3], folds_labels[4]))
             x_val = folds_train[1]
             y_val = folds_labels[1]
-            max_epochs = 80
+            max_epochs = 92
         elif fold_numb == '3':
             x_train = np.concatenate((folds_train[0], folds_train[1], folds_train[3], folds_train[4]))
             y_train = np.concatenate((folds_labels[0],folds_labels[1], folds_labels[3], folds_labels[4]))
             x_val = folds_train[2]
             y_val = folds_labels[2]
-            max_epochs = 90
+            max_epochs = 92
         elif fold_numb == '4':
             x_train = np.concatenate((folds_train[0], folds_train[1], folds_train[2], folds_train[4]))
             y_train = np.concatenate((folds_labels[0],folds_labels[1], folds_labels[2], folds_labels[4]))
             x_val = folds_train[3]
             y_val = folds_labels[3]
-            max_epochs = 100
+            max_epochs = 92
         elif fold_numb == '5':
             x_train = np.concatenate((folds_train[0], folds_train[1], folds_train[2], folds_train[3]))
             y_train = np.concatenate((folds_labels[0],folds_labels[1], folds_labels[2], folds_labels[3]))
             x_val = folds_train[4]
             y_val = folds_labels[4]
-            max_epochs = 110
+            max_epochs = 92
         print(f'\n training for the fold number {fold_numb} \n')
         NAME = "Hyperband_fold" + fold_numb
         run_search(NAME, x_train, y_train, x_val, y_val, 1, max_epochs)
