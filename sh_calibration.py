@@ -136,31 +136,28 @@ if dataset == 'FASHION':
             # y_val = y_train_orig[-100:]
             # x_train = x_train_orig[:100]
             # y_train = y_train_orig[:100]
-            max_epochs= 90
+
         elif fold_numb == '2':
             x_val = x_train_orig[12000:24000]
             x_train = np.concatenate((x_train_orig[:12000],x_train_orig[24000:] ), axis = 0)
             y_val = y_train_orig[12000:24000]
             y_train = np.concatenate((y_train_orig[:12000],y_train_orig[24000:]), axis=0)
-            max_epochs = 100
         elif fold_numb == '3':
             x_val = x_train_orig[24000:36000]
             x_train = np.concatenate((x_train_orig[:24000], x_train_orig[36000:]), axis=0)
             y_val = y_train_orig[24000:36000]
             y_train = np.concatenate((y_train_orig[:24000], y_train_orig[36000:]), axis=0)
-            max_epochs = 110
         elif fold_numb == '4':
             x_val = x_train_orig[36000:48000]
             x_train = np.concatenate((x_train_orig[:36000], x_train_orig[48000:]), axis=0)
             y_val = y_train_orig[36000:48000]
             y_train = np.concatenate((y_train_orig[:36000], y_train_orig[48000:]), axis=0)
-            max_epochs = 120
         elif fold_numb == '5':
             x_val = x_train_orig[48000:60000]
             x_train = x_train_orig[:48000]
             y_val = y_train_orig[48000:60000]
             y_train = y_train_orig[:48000]
-            max_epochs = 130
+        max_epochs = 103
         print(f'\n training for the fold number {fold_numb} \n')
         NAME = "SH_fold" + fold_numb
         run_search(NAME, x_train, y_train, x_val, y_val, 1, max_epochs)
