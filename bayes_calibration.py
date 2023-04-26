@@ -102,7 +102,7 @@ def run_search(NAME,x_train, y_train, x_val, y_val, number_of_model):
 
 
 
-        tuner.search(x = x_train, y = y_train, epochs=15, validation_data=(x_val, y_val))
+        tuner.search(x = x_train, y = y_train, epochs=30, validation_data=(x_val, y_val))
         best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
         end = time.time()
         elapsed_time = end - start
@@ -115,7 +115,7 @@ def run_search(NAME,x_train, y_train, x_val, y_val, number_of_model):
                                  number=92, fold_numb=fold_numb, time= elapsed_time/3600, file_name='bayes_oracle_results.csv')
 
     # Get the optimal hyperparameters
-folds_numbers = ['1', '2', '3', '4']
+folds_numbers = ['1', '2', '3', '4', '5']
 # numb_of_models = [30, 40, 50, 60, 70]
 f.save_evolution_results(number_of_models = '' ,conv1='40-140', conv2='40-100', conv3='32-80', lr='5--15',
                          kernel1='3--7', kernel2='3--9', kernel3='3--15', opt='',
@@ -167,31 +167,31 @@ elif dataset == 'ORACLE':
             # y_val = y_train_orig[-100:]
             # x_train = x_train_orig[:100]
             # y_train = y_train_orig[:100]
-            max_epochs = 70
+            max_epochs = 40
         elif fold_numb == '2':
             x_train = np.concatenate((folds_train[0], folds_train[2], folds_train[3], folds_train[4]))
             y_train = np.concatenate((folds_labels[0],folds_labels[2], folds_labels[3], folds_labels[4]))
             x_val = folds_train[1]
             y_val = folds_labels[1]
-            max_epochs = 80
+            max_epochs = 45
         elif fold_numb == '3':
             x_train = np.concatenate((folds_train[0], folds_train[1], folds_train[3], folds_train[4]))
             y_train = np.concatenate((folds_labels[0],folds_labels[1], folds_labels[3], folds_labels[4]))
             x_val = folds_train[2]
             y_val = folds_labels[2]
-            max_epochs = 90
+            max_epochs = 50
         elif fold_numb == '4':
             x_train = np.concatenate((folds_train[0], folds_train[1], folds_train[2], folds_train[4]))
             y_train = np.concatenate((folds_labels[0],folds_labels[1], folds_labels[2], folds_labels[4]))
             x_val = folds_train[3]
             y_val = folds_labels[3]
-            max_epochs = 100
+            max_epochs = 55
         elif fold_numb == '5':
             x_train = np.concatenate((folds_train[0], folds_train[1], folds_train[2], folds_train[3]))
             y_train = np.concatenate((folds_labels[0],folds_labels[1], folds_labels[2], folds_labels[3]))
             x_val = folds_train[4]
             y_val = folds_labels[4]
-            max_epochs = 92
+            max_epochs = 60
         print(f'\n training for the fold number {fold_numb} \n')
         NAME = "Bayes_fold" + fold_numb
         run_search(NAME, x_train, y_train, x_val, y_val,  max_epochs)
