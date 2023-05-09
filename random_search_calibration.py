@@ -294,9 +294,11 @@ from time import sleep
 num_classes = 10
 input_shape = (28, 28, 1)
 tf.random.set_seed(1234)
-(x_train, y_train), (x_test, y_test) = fashion_mnist.load_data()
+dataset = 'ORACLE'
+x_train_orig, y_train_orig,  x_test_orig, y_test_orig = f.choose_dataset(dataset)
+# (x_train, y_train), (x_test, y_test) = fashion_mnist.load_data()
 # x_train, y_train, x_test, y_test = f.edit_data(x_train, y_train, x_test, y_test)
-size_data = x_train.shape[0]
+size_data = x_train_orig.shape[0]
 batch_size = 64
 epochs =9
 class Epoch_Tracker:
@@ -372,17 +374,17 @@ def model_builder(hp):
 
     return model
 
-def run_search(NAME):
+def run_search(NAME,x_train, y_train, x_val, y_val, max_trials):
     start_time = time.time()
     tuner = kt.RandomSearch(model_builder,
                          objective='val_acc',
-                         max_trials= 1000,
-                         directory='random_search',
+                         max_trials= max_trials,
+                         directory='oracle/random_search',
                          project_name=NAME)
 
 
-    early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_acc', patience=5, baseline=0.7)
-    tuner.search(x = x_train, y = y_train, epochs=9, validation_data=(x_val, y_val), callbacks=[early_stop])
+    # early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_acc', patience=5, baseline=0.7)
+    tuner.search(x = x_train, y = y_train, epochs=30, validation_data=(x_val, y_val))
 
     # Get the optimal hyperparameters
     best_hps=tuner.get_best_hyperparameters(num_trials=1)[0]
@@ -393,15 +395,44 @@ def run_search(NAME):
                              kernel3=best_hps.get('kernel_size3'), opt=best_hps.get('optimizer'),
                              dropout1=best_hps.get('drop1'), dropout2=best_hps.get('drop2'), val_acc='',
                              number=0, fold_numb=fold_numb, time='', file_name='random_results.csv')
-folds_numbers = ['1']
-x_train, y_train, x_test, y_test = f.edit_data(x_train, y_train,
-                                               x_test, y_test)
+# folds_numbers = ['1']
+folds_numbers = ['1', '2', '3', '4', '5']
+x_train_orig, y_train_orig, x_test_orig, y_test_orig = f.edit_data(x_train_orig, y_train_orig,
+                                                       x_test_orig, y_test_orig)
 for fold_numb in folds_numbers:
-    if fold_numb == '1':
-        x_val = x_train[:12000]
-        x_train = x_train[12000:]
-        y_val = y_train[:12000]
-        y_train = y_train[12000:]
-        NAME = "Random_fold1"
-        print(f'\n training for the fold number {fold_numb} \n')
-    run_search(NAME)
+    if dataset == 'ORACLE':
+        folds_train, folds_labels = f.split_dataset(dataset, x_train_orig, y_train_orig)
+        for fold_numb in folds_numbers:
+            if fold_numb == '1':
+                x_train = np.concatenate((folds_train[1], folds_train[2], folds_train[3], folds_train[4]))
+                y_train = np.concatenate((folds_labels[1], folds_labels[2], folds_labels[3], folds_labels[4]))
+                x_val = folds_train[0]
+                y_val = folds_labels[0]
+                max_trials = 35
+            elif fold_numb == '2':
+                x_train = np.concatenate((folds_train[0], folds_train[2], folds_train[3], folds_train[4]))
+                y_train = np.concatenate((folds_labels[0], folds_labels[2], folds_labels[3], folds_labels[4]))
+                x_val = folds_train[1]
+                y_val = folds_labels[1]
+                max_trials = 40
+            elif fold_numb == '3':
+                x_train = np.concatenate((folds_train[0], folds_train[1], folds_train[3], folds_train[4]))
+                y_train = np.concatenate((folds_labels[0], folds_labels[1], folds_labels[3], folds_labels[4]))
+                x_val = folds_train[2]
+                y_val = folds_labels[2]
+                max_trials = 45
+            elif fold_numb == '4':
+                x_train = np.concatenate((folds_train[0], folds_train[1], folds_train[2], folds_train[4]))
+                y_train = np.concatenate((folds_labels[0], folds_labels[1], folds_labels[2], folds_labels[4]))
+                x_val = folds_train[3]
+                y_val = folds_labels[3]
+                max_trials =50
+            elif fold_numb == '5':
+                x_train = np.concatenate((folds_train[0], folds_train[1], folds_train[2], folds_train[3]))
+                y_train = np.concatenate((folds_labels[0], folds_labels[1], folds_labels[2], folds_labels[3]))
+                x_val = folds_train[4]
+                y_val = folds_labels[4]
+                max_trials = 55
+            print(f'\n training for the fold number {fold_numb} \n')
+            NAME = "Random_fold" + fold_numb
+            run_search(NAME, x_train, y_train, x_val, y_val, max_trials)
