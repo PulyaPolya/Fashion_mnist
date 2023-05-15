@@ -420,4 +420,7 @@ def split_dataset(dataset, x_train_orig, y_train_orig ):
         n2 = random.choice([0, 1, 2, 3, 4])
         folds_train[n2] = np.concatenate((folds_train[n2], np.expand_dims(x_train_orig[-1], axis=0)))
         folds_labels[n2] = np.concatenate((folds_labels[n2], np.expand_dims(y_train_orig[-1], axis=0)))
+    else:
+        folds_train = np.array_split(x_train_orig, 5)
+        folds_labels = np.array_split(y_train_orig, 5)
     return folds_train, folds_labels
