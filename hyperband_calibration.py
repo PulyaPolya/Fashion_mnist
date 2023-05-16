@@ -115,7 +115,7 @@ def run_search(NAME,x_train, y_train, x_val, y_val, max_epochs, num_of_runs):
         end = time.time()
         elapsed_time = end - start
         # print(best_hps)
-        f.save_evolution_results(number_of_models='', conv1=best_hps.get('conv1'),
+        f.save_evolution_results(number_of_models=max_epochs, conv1=best_hps.get('conv1'),
                                  conv2=best_hps.get('conv2'), conv3=best_hps.get('conv3'), lr=best_hps.get('learning rate'),
                                  kernel1=best_hps.get('kernel_size1'), kernel2=best_hps.get('kernel_size2'),
                                  kernel3=best_hps.get('kernel_size3'), opt=best_hps.get('optimizer'),
@@ -123,8 +123,8 @@ def run_search(NAME,x_train, y_train, x_val, y_val, max_epochs, num_of_runs):
                                  number=92, fold_numb=fold_numb, time= elapsed_time/3600, file_name='hyperband_oracle_results.csv')
 
     # Get the optimal hyperparameters
-# folds_numbers = ['1', '2', '3', '4', '5']
-folds_numbers = ['1', '2', '3']
+folds_numbers = ['1', '2', '3', '4', '5']
+# folds_numbers = ['1', '2', '3']
 
 f.save_evolution_results(number_of_models = '' ,conv1='40-140', conv2='40-100', conv3='32-80', lr='5--15',
                          kernel1='3--7', kernel2='3--9', kernel3='3--15', opt='',
@@ -180,19 +180,16 @@ elif dataset == 'ORACLE':
             y_train = np.concatenate((folds_labels[1],folds_labels[2], folds_labels[3], folds_labels[4]))
             x_val = folds_train[0]
             y_val = folds_labels[0]
-            max_epochs = 50
         elif fold_numb == '2':
             x_train = np.concatenate((folds_train[0], folds_train[2], folds_train[3], folds_train[4]))
             y_train = np.concatenate((folds_labels[0],folds_labels[2], folds_labels[3], folds_labels[4]))
             x_val = folds_train[1]
             y_val = folds_labels[1]
-            max_epochs = 60
         elif fold_numb == '3':
             x_train = np.concatenate((folds_train[0], folds_train[1], folds_train[3], folds_train[4]))
             y_train = np.concatenate((folds_labels[0],folds_labels[1], folds_labels[3], folds_labels[4]))
             x_val = folds_train[2]
             y_val = folds_labels[2]
-            max_epochs = 70
         elif fold_numb == '4':
             x_train = np.concatenate((folds_train[0], folds_train[1], folds_train[2], folds_train[4]))
             y_train = np.concatenate((folds_labels[0],folds_labels[1], folds_labels[2], folds_labels[4]))
@@ -203,6 +200,7 @@ elif dataset == 'ORACLE':
             y_train = np.concatenate((folds_labels[0],folds_labels[1], folds_labels[2], folds_labels[3]))
             x_val = folds_train[4]
             y_val = folds_labels[4]
+        max_epochs = 70
         print(f'\n training for the fold number {fold_numb} \n')
         NAME = "Hyperband_fold" + fold_numb
         run_search(NAME, x_train, y_train, x_val, y_val, max_epochs, num_of_runs=1)
