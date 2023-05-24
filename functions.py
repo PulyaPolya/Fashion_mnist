@@ -14,14 +14,15 @@ from keras.callbacks import LambdaCallback
 import oracle as oracle
 
 
-def edit_data(x_train, y_train, x_test, y_test):
+def edit_data(x_train, y_train, x_test, y_test, merge = False):
     x_train = x_train.reshape(x_train.shape[0], x_train.shape[1], x_train.shape[2], 1)
     x_train = x_train / 255.0
 
     x_test = x_test.reshape(x_test.shape[0], x_test.shape[1], x_test.shape[2], 1)
     x_test = x_test / 255.0
-    y_train = tf.one_hot(y_train.astype(np.int32), depth=10)
-    y_test = tf.one_hot(y_test.astype(np.int32), depth=10)
+    if not merge:
+        y_train = tf.one_hot(y_train.astype(np.int32), depth=10)
+        y_test = tf.one_hot(y_test.astype(np.int32), depth=10)
     return x_train, y_train, x_test, y_test
 
 
@@ -78,11 +79,16 @@ def add_zeros(y_train, add_in_begg):
     y_train_20 = np.array(y_train_20)
     return y_train_20
 
-def get_data_for_d_f(ret = 'all'):
-    (x_train_d, y_train_d), (x_test_d, y_test_d) = mnist.load_data()
+def get_data_for_d_f(dataset='ORACLE',ret = 'all'):
+    if dataset == 'ORACLE':
+        x_train_d, y_train_d, x_test_d, y_test_d = oracle.read_data_sets('oracle-mnist', one_hot=False,
+                                                                         valid_num=0, dtype=tf.float32)
+
+    else:
+        (x_train_d, y_train_d), (x_test_d, y_test_d) = mnist.load_data()
     (x_train_f, y_train_f), (x_test_f, y_test_f) = fashion_mnist.load_data()
-    x_train_d, y_train_d, x_test_d, y_test_d = edit_data(x_train_d, y_train_d, x_test_d, y_test_d)
-    x_train_f, y_train_f, x_test_f, y_test_f = edit_data(x_train_f, y_train_f, x_test_f, y_test_f)
+    x_train_d, y_train_d, x_test_d, y_test_d = edit_data(x_train_d, y_train_d, x_test_d, y_test_d, merge = True)
+    x_train_f, y_train_f, x_test_f, y_test_f = edit_data(x_train_f, y_train_f, x_test_f, y_test_f, merge = True)
 
     # y_train_20d = add_zeros(y_train_d, add_in_begg=True)
     # y_train_20f = add_zeros(y_train_f, add_in_begg=False)
@@ -411,7 +417,7 @@ def choose_dataset(dataset):
     return x_train_orig, y_train_orig,  x_test_orig, y_test_orig
 
 def split_dataset(dataset, x_train_orig, y_train_orig ):
-    if dataset == 'ORACLE':
+    if dataset == 'ORACLE' or dataset == 'ORACLE+FASHION':
         folds_train = np.array_split(x_train_orig[:-2], 5)
         folds_labels = np.array_split(y_train_orig[:-2], 5)
         n1 = random.choice([0, 1, 2, 3, 4])
