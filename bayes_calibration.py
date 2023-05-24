@@ -104,7 +104,7 @@ def run_search(NAME,x_train, y_train, x_val, y_val, number_of_model):
 
 
 
-        tuner.search(x = x_train, y = y_train, epochs=30, validation_data=(x_val, y_val))
+        tuner.search(x = x_train, y = y_train, epochs=10, validation_data=(x_val, y_val))
         best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
         end = time.time()
         elapsed_time = end - start
@@ -165,7 +165,7 @@ else:
             y_train = np.concatenate((folds_labels[1],folds_labels[2], folds_labels[3], folds_labels[4]))
             x_val = folds_train[0]
             y_val = folds_labels[0]
-            max_epochs = 48
+            max_epochs = 35
             # x_val = x_train_orig[-100:]
             # y_val = y_train_orig[-100:]
             # x_train = x_train_orig[:100]
@@ -176,26 +176,27 @@ else:
             y_train = np.concatenate((folds_labels[0],folds_labels[2], folds_labels[3], folds_labels[4]))
             x_val = folds_train[1]
             y_val = folds_labels[1]
-            max_epochs = 48
+            max_epochs = 45
         elif fold_numb == '3':
             x_train = np.concatenate((folds_train[0], folds_train[1], folds_train[3], folds_train[4]))
             y_train = np.concatenate((folds_labels[0],folds_labels[1], folds_labels[3], folds_labels[4]))
             x_val = folds_train[2]
             y_val = folds_labels[2]
-            max_epochs = 48
+            max_epochs = 55
         elif fold_numb == '4':
             x_train = np.concatenate((folds_train[0], folds_train[1], folds_train[2], folds_train[4]))
             y_train = np.concatenate((folds_labels[0],folds_labels[1], folds_labels[2], folds_labels[4]))
             x_val = folds_train[3]
             y_val = folds_labels[3]
-            max_epochs = 48
+            max_epochs = 65
 
         elif fold_numb == '5':
             x_train = np.concatenate((folds_train[0], folds_train[1], folds_train[2], folds_train[3]))
             y_train = np.concatenate((folds_labels[0],folds_labels[1], folds_labels[2], folds_labels[3]))
             x_val = folds_train[4]
             y_val = folds_labels[4]
-            max_epochs = 48
+            max_epochs = 75
         print(f'\n training for the fold number {fold_numb} \n')
+        print(x_train.shape)
         NAME = "Bayes_fold" + fold_numb
         run_search(NAME, x_train, y_train, x_val, y_val,  max_epochs)
