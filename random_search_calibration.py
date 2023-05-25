@@ -291,11 +291,18 @@ import threading
 import time
 from time import sleep
 
-num_classes = 10
+# dataset = 'ORACLE'
+dataset = 'ORACLE+FASHION'
+if dataset == 'ORACLE+FASHION':
+    num_classes = 20
+    x_train_orig, y_train_orig, x_test_orig, y_test_orig = f.get_data_for_d_f()
+else:
+    num_classes = 10
+    x_train_orig, y_train_orig, x_test_orig, y_test_orig = f.choose_dataset(dataset)
 input_shape = (28, 28, 1)
 tf.random.set_seed(1234)
-dataset = 'ORACLE'
-x_train_orig, y_train_orig,  x_test_orig, y_test_orig = f.choose_dataset(dataset)
+
+
 # (x_train, y_train), (x_test, y_test) = fashion_mnist.load_data()
 # x_train, y_train, x_test, y_test = f.edit_data(x_train, y_train, x_test, y_test)
 size_data = x_train_orig.shape[0]
@@ -311,8 +318,8 @@ class Epoch_Tracker:
 
 def random_invert_img(x):
   #print(epoch_track.epoch)
-  if epoch_track.epoch >= epochs:
-     return x
+  # if epoch_track.epoch >= epochs:
+  #    return x
   x_temp = x.numpy()
   x_temp = x_temp.reshape(x_temp.shape[0], 28,28)
   x_shifted = []
@@ -379,12 +386,12 @@ def run_search(NAME,x_train, y_train, x_val, y_val, max_trials):
     tuner = kt.RandomSearch(model_builder,
                          objective='val_acc',
                          max_trials= max_trials,
-                         directory='oracle/random_search',
+                         directory='oracle_and_fashion/random_search',
                          project_name=NAME)
 
 
     # early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_acc', patience=5, baseline=0.7)
-    tuner.search(x = x_train, y = y_train, epochs=30, validation_data=(x_val, y_val))
+    tuner.search(x = x_train, y = y_train, epochs=10, validation_data=(x_val, y_val))
 
     # Get the optimal hyperparameters
     best_hps=tuner.get_best_hyperparameters(num_trials=1)[0]
@@ -397,7 +404,7 @@ def run_search(NAME,x_train, y_train, x_val, y_val, max_trials):
                              kernel3=best_hps.get('kernel_size3'), opt=best_hps.get('optimizer'),
                              dropout1=best_hps.get('drop1'), dropout2=best_hps.get('drop2'), val_acc='',
                              number=92, fold_numb=fold_numb, time=elapsed_time / 3600,
-                             file_name='random_oracle_results.csv')
+                             file_name='random_oracle+fashion_results.csv')
 
 
 # Get the optimal hyperparameters
@@ -406,11 +413,12 @@ def run_search(NAME,x_train, y_train, x_val, y_val, max_trials):
 folds_numbers = ['1', '2', '3', '4', '5']
 f.save_evolution_results(number_of_models = '' ,conv1='40-140', conv2='40-100', conv3='32-80', lr='5--15',
                          kernel1='3--7', kernel2='3--9', kernel3='3--15', opt='',
-                         dropout1='3--6',dropout2='3--6', val_acc='', number=0,fold_numb=0, time = 0, file_name = 'random_oracle_results.csv')
-x_train_orig, y_train_orig, x_test_orig, y_test_orig = f.edit_data(x_train_orig, y_train_orig,
-                                                       x_test_orig, y_test_orig)
+                         dropout1='3--6',dropout2='3--6', val_acc='', number=0,fold_numb=0, time = 0,
+                         file_name = 'random_oracle+fashion_results.csv')
+# x_train_orig, y_train_orig, x_test_orig, y_test_orig = f.edit_data(x_train_orig, y_train_orig,
+#                                                        x_test_orig, y_test_orig)
 for fold_numb in folds_numbers:
-    if dataset == 'ORACLE':
+    if dataset == 'ORACLE' or dataset == 'ORACLE+FASHION':
         folds_train, folds_labels = f.split_dataset(dataset, x_train_orig, y_train_orig)
         for fold_numb in folds_numbers:
             if fold_numb == '1':
@@ -418,26 +426,31 @@ for fold_numb in folds_numbers:
                 y_train = np.concatenate((folds_labels[1], folds_labels[2], folds_labels[3], folds_labels[4]))
                 x_val = folds_train[0]
                 y_val = folds_labels[0]
+                max_trials = 40
             elif fold_numb == '2':
                 x_train = np.concatenate((folds_train[0], folds_train[2], folds_train[3], folds_train[4]))
                 y_train = np.concatenate((folds_labels[0], folds_labels[2], folds_labels[3], folds_labels[4]))
                 x_val = folds_train[1]
                 y_val = folds_labels[1]
+                max_trials = 45
             elif fold_numb == '3':
                 x_train = np.concatenate((folds_train[0], folds_train[1], folds_train[3], folds_train[4]))
                 y_train = np.concatenate((folds_labels[0], folds_labels[1], folds_labels[3], folds_labels[4]))
                 x_val = folds_train[2]
                 y_val = folds_labels[2]
+                max_trials = 50
             elif fold_numb == '4':
                 x_train = np.concatenate((folds_train[0], folds_train[1], folds_train[2], folds_train[4]))
                 y_train = np.concatenate((folds_labels[0], folds_labels[1], folds_labels[2], folds_labels[4]))
                 x_val = folds_train[3]
                 y_val = folds_labels[3]
+                max_trials = 55
             elif fold_numb == '5':
                 x_train = np.concatenate((folds_train[0], folds_train[1], folds_train[2], folds_train[3]))
                 y_train = np.concatenate((folds_labels[0], folds_labels[1], folds_labels[2], folds_labels[3]))
                 x_val = folds_train[4]
                 y_val = folds_labels[4]
+                max_trials = 60
             max_trials = 45
             print(f'\n training for the fold number {fold_numb} \n')
             NAME = "Random_fold" + fold_numb
