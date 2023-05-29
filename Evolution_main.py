@@ -13,7 +13,8 @@ import sys
 import threading
 from time import sleep
 
-dataset = 'ORACLE'
+# dataset = 'ORACLE'
+dataset = 'FASHION'
 x_train_orig, y_train_orig,  x_test_orig, y_test_orig = f.choose_dataset(dataset)
 try:
     import thread
@@ -253,10 +254,10 @@ def run_evo(x_train, y_train, x_val, y_val):
     f.save_evolution_results(number_of_models = evolution.numb_of_trained_models, conv1=best_model[0], conv2=best_model[1], conv3=best_model[2], lr=best_model[8],
                              kernel1=best_model[3], kernel2=best_model[4], kernel3=best_model[5], opt=best_model[9],
                              dropout1=best_model[6],dropout2=best_model[7], val_acc=round(best_acc, 4),
-                             number=number, fold_numb= fold_numb, time = elapsed_time/3600, file_name = "oracle_evolution_results.csv")
+                             number=number, fold_numb= fold_numb, time = elapsed_time/3600, file_name = "fashion32_evolution_results.csv")
 f.save_evolution_results(number_of_models = '' ,conv1='40-140', conv2='40-100', conv3='32-80', lr='5--15',
                          kernel1='3--7', kernel2='3--9', kernel3='3--15', opt='',
-                         dropout1='3--6',dropout2='3--6', val_acc='', number=0,fold_numb=0, time = 0, file_name = "oracle_evolution_results.csv")
+                         dropout1='3--6',dropout2='3--6', val_acc='', number=0,fold_numb=0, time = 0, file_name = "fashion32_evolution_results.csv")
 # run_evo()
 
 # for fold_numb in folds_numb:
@@ -277,10 +278,10 @@ f.save_evolution_results(number_of_models = '' ,conv1='40-140', conv2='40-100', 
 #         epochs = 9
 # (x_train_orig, y_train_orig), (x_test_orig, y_test_orig) = fashion_mnist.load_data()
 input_shape = (28, 28, 1)
-batch_size = 64
+batch_size = 32
 num_classes = 10
 numb_of_runs = 100
-epochs =30
+epochs =15
 number = 0
 total_time = 5*60*60 - 20*60 # whole time for running each fold
 folds_numbers = ['1', '2', '3', '4', '5']
