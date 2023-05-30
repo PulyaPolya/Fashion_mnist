@@ -148,8 +148,8 @@ def train_models(evolution,models, numb_iteration, x_train, y_train, x_val, y_va
 
         tensorboard = TensorBoard(log_dir='cross-validation/{}'.format(NAME), update_freq='batch', )
         history = model.fit(x_train, y_train,
-                            batch_size=batch_size,
-                            epochs=30,
+                            batch_size=32,
+                            epochs=15,
                             validation_data = (x_val,y_val),
                             #validation_split=0.1,
                             callbacks = [tensorboard],
@@ -283,7 +283,7 @@ num_classes = 10
 numb_of_runs = 100
 epochs =15
 number = 0
-total_time = 5*60*60 - 20*60 # whole time for running each fold
+total_time = 5*60*60 - 10*60 # whole time for running each fold
 folds_numbers = ['1', '2', '3', '4', '5']
 x_train_orig, y_train_orig, x_test_orig, y_test_orig = f.edit_data(x_train_orig, y_train_orig,
                                                        x_test_orig, y_test_orig)
