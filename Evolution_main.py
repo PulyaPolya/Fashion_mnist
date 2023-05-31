@@ -13,8 +13,8 @@ import sys
 import threading
 from time import sleep
 
-# dataset = 'ORACLE'
-dataset = 'FASHION'
+dataset = 'ORACLE'
+# dataset = 'FASHION'
 x_train_orig, y_train_orig,  x_test_orig, y_test_orig = f.choose_dataset(dataset)
 try:
     import thread
@@ -149,7 +149,7 @@ def train_models(evolution,models, numb_iteration, x_train, y_train, x_val, y_va
         tensorboard = TensorBoard(log_dir='cross-validation/{}'.format(NAME), update_freq='batch', )
         history = model.fit(x_train, y_train,
                             batch_size=32,
-                            epochs=15,
+                            epochs=30,
                             validation_data = (x_val,y_val),
                             #validation_split=0.1,
                             callbacks = [tensorboard],
@@ -254,29 +254,12 @@ def run_evo(x_train, y_train, x_val, y_val):
     f.save_evolution_results(number_of_models = evolution.numb_of_trained_models, conv1=best_model[0], conv2=best_model[1], conv3=best_model[2], lr=best_model[8],
                              kernel1=best_model[3], kernel2=best_model[4], kernel3=best_model[5], opt=best_model[9],
                              dropout1=best_model[6],dropout2=best_model[7], val_acc=round(best_acc, 4),
-                             number=number, fold_numb= fold_numb, time = elapsed_time/3600, file_name = "fashion32_evolution_results.csv")
+                             number=number, fold_numb= fold_numb, time = elapsed_time/3600,
+                             file_name = "oracle32_evolution_results.csv")
 f.save_evolution_results(number_of_models = '' ,conv1='40-140', conv2='40-100', conv3='32-80', lr='5--15',
                          kernel1='3--7', kernel2='3--9', kernel3='3--15', opt='',
-                         dropout1='3--6',dropout2='3--6', val_acc='', number=0,fold_numb=0, time = 0, file_name = "fashion32_evolution_results.csv")
-# run_evo()
-
-# for fold_numb in folds_numb:
-#     debug = 'debug'
-#     if debug == 'debug':
-#         epochs = 1
-#         numb_of_runs = 2
-#
-#         x_val = x_train[-100:]
-#         y_val = y_train[-100:]
-#         x_train = x_train[:100]
-#         y_train = y_train[:100]
-#         NAME = "Evolution_fold" + fold_numb
-#         print(f'\n training for the fold number {fold_numb} \n')
-#         run_evo()
-#     else:
-#         numb_of_runs = 100
-#         epochs = 9
-# (x_train_orig, y_train_orig), (x_test_orig, y_test_orig) = fashion_mnist.load_data()
+                         dropout1='3--6',dropout2='3--6', val_acc='', number=0,fold_numb=0, time = 0,
+                         file_name = "oracle32_evolution_results.csv")
 input_shape = (28, 28, 1)
 batch_size = 32
 num_classes = 10
