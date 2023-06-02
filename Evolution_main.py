@@ -13,9 +13,12 @@ import sys
 import threading
 from time import sleep
 
-dataset = 'ORACLE'
-# dataset = 'FASHION'
-x_train_orig, y_train_orig,  x_test_orig, y_test_orig = f.choose_dataset(dataset)
+# dataset = 'ORACLE'
+# # dataset = 'FASHION'
+# x_train_orig, y_train_orig,  x_test_orig, y_test_orig = f.choose_dataset(dataset)
+dataset = 'ORACLE+FASHION'
+
+x_train_orig, y_train_orig,  x_test_orig, y_test_orig = f.get_data_for_d_f()
 try:
     import thread
 except ImportError:
@@ -149,7 +152,7 @@ def train_models(evolution,models, numb_iteration, x_train, y_train, x_val, y_va
         tensorboard = TensorBoard(log_dir='cross-validation/{}'.format(NAME), update_freq='batch', )
         history = model.fit(x_train, y_train,
                             batch_size=32,
-                            epochs=30,
+                            epochs=10,
                             validation_data = (x_val,y_val),
                             #validation_split=0.1,
                             callbacks = [tensorboard],
@@ -262,14 +265,14 @@ f.save_evolution_results(number_of_models = '' ,conv1='40-140', conv2='40-100', 
                          file_name = "oracle32_evolution_results.csv")
 input_shape = (28, 28, 1)
 batch_size = 32
-num_classes = 10
+num_classes = 20
 numb_of_runs = 100
 epochs =15
 number = 0
 total_time = 5*60*60 - 15*60 # whole time for running each fold
 folds_numbers = ['1', '2', '3', '4', '5']
-x_train_orig, y_train_orig, x_test_orig, y_test_orig = f.edit_data(x_train_orig, y_train_orig,
-                                                       x_test_orig, y_test_orig)
+# x_train_orig, y_train_orig, x_test_orig, y_test_orig = f.edit_data(x_train_orig, y_train_orig,
+#                                                        x_test_orig, y_test_orig)
 if dataset == 'FASHION':
     for fold_numb in folds_numbers:
         if fold_numb == '1':
@@ -313,7 +316,7 @@ if dataset == 'FASHION':
         print(f'x_val shape is {x_val.shape}')
         print(f'y_val shape is {y_val.shape}')
         run_evo(x_train, y_train, x_val, y_val)
-elif dataset == 'ORACLE':
+else:
     folds_train, folds_labels = f.split_dataset(dataset, x_train_orig, y_train_orig)
     for fold_numb in folds_numbers:
         i = folds_numbers.index(fold_numb)
