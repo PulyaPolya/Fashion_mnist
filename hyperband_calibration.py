@@ -175,20 +175,20 @@ else:
             y_train = np.concatenate((folds_labels[1],folds_labels[2], folds_labels[3], folds_labels[4]))
             x_val = folds_train[0]
             y_val = folds_labels[0]
-            max_epochs = 15
+            max_epochs = 26
 
         elif fold_numb == '2':
             x_train = np.concatenate((folds_train[0], folds_train[2], folds_train[3], folds_train[4]))
             y_train = np.concatenate((folds_labels[0],folds_labels[2], folds_labels[3], folds_labels[4]))
             x_val = folds_train[1]
             y_val = folds_labels[1]
-            max_epochs = 20
+            max_epochs = 27
         elif fold_numb == '3':
             x_train = np.concatenate((folds_train[0], folds_train[1], folds_train[3], folds_train[4]))
             y_train = np.concatenate((folds_labels[0],folds_labels[1], folds_labels[3], folds_labels[4]))
             x_val = folds_train[2]
             y_val = folds_labels[2]
-            max_epochs = 25
+            max_epochs = 28
         elif fold_numb == '4':
             x_train = np.concatenate((folds_train[0], folds_train[1], folds_train[2], folds_train[4]))
             y_train = np.concatenate((folds_labels[0],folds_labels[1], folds_labels[2], folds_labels[4]))
